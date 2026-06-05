@@ -93,6 +93,7 @@
   h1 { letter-spacing: -1.5px; }
   h2 { letter-spacing: -1px; }
   h3 { letter-spacing: -0.5px; }
+}
 
 @layer utilities {
   .text-display-xl {
