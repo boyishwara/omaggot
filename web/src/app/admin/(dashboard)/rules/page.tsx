@@ -38,13 +38,13 @@ export default function RulesPage() {
   };
 
   const toggleRule = async (id: number, currentStatus: boolean) => {
-    const { error } = await supabase.from('warning_rules').update({ is_active: !currentStatus }).eq('id', id);
+    const { error } = await (supabase as any).from('warning_rules').update({ is_active: !currentStatus }).eq('id', id);
     if (!error) fetchRules();
   };
 
   const deleteRule = async (id: number) => {
     if (confirm('Are you sure you want to delete this rule?')) {
-      const { error } = await supabase.from('warning_rules').delete().eq('id', id);
+      const { error } = await (supabase as any).from('warning_rules').delete().eq('id', id);
       if (!error) fetchRules();
     }
   };
@@ -90,10 +90,10 @@ export default function RulesPage() {
     let error;
     
     if (editingRuleId) {
-      const res = await supabase.from('warning_rules').update(ruleData).eq('id', editingRuleId);
+      const res = await (supabase as any).from('warning_rules').update(ruleData as any).eq('id', editingRuleId);
       error = res.error;
     } else {
-      const res = await supabase.from('warning_rules').insert([ruleData]);
+      const res = await (supabase as any).from('warning_rules').insert([ruleData as any]);
       error = res.error;
     }
     

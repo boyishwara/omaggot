@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 
   const initialReadings = readingsData || [];
   const initialNotifications = notifsData || [];
-  const initialSimulationStatus = simSetting?.value || 'NONE';
+  const initialSimulationStatus = (simSetting as any)?.value || 'NONE';
 
   return (
     <DashboardClient 

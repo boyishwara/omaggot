@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 
     // Broadcast to all active subscribers concurrently
     await Promise.allSettled(
-      subscribers.map(sub => 
+      subscribers.map((sub: any) => 
         fetch(telegramUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
