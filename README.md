@@ -28,8 +28,8 @@ graph LR
 
     subgraph "Cloud Infrastructure"
         HiveMQ[HiveMQ Cloud MQTT]
-        Worker[Node.js MQTT Worker<br/>(Railway/Render)]
-        NextJS[Next.js App & API<br/>(Vercel)]
+        Worker["Node.js MQTT Worker<br/>(Railway/Render)"]
+        NextJS["Next.js App & API<br/>(Vercel)"]
         Supabase[(Supabase Postgres)]
     end
 
