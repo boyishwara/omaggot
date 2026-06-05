@@ -4,7 +4,51 @@ An enterprise-grade Internet of Things (IoT) environmental monitoring system spe
 
 BSF maggots require precise temperature and humidity ranges to thrive. This system provides real-time monitoring, automated alerts, and comprehensive historical data analysis to ensure optimal breeding conditions and maximize yield.
 
-## Architecture Diagram
+## Prerequisites
+Before you begin, ensure you have the following installed and set up:
+- **Node.js 18+** installed on your computer.
+- **Arduino IDE** (with ESP32 board manager installed).
+- A free account on **Supabase** (Database).
+- A free account on **HiveMQ Cloud** (MQTT Broker).
+- A **Telegram** account (for receiving alerts).
+
+## System Architecture
+
+To help new developers understand the project quickly, here is a visual breakdown of how the physical hardware, cloud services, and database interact.
+
+### 1. Component Architecture
+This diagram shows the physical and cloud boundaries of the system.
+
+```mermaid
+graph LR
+    subgraph "Local Environment"
+        DHT[DHT22 Sensor] -->|Reads| ESP32[ESP32 Microcontroller]
+        ESP32 -->|Triggers| HW[LEDs & Buzzer]
+    end
+
+    subgraph "Cloud Infrastructure"
+        HiveMQ[HiveMQ Cloud MQTT]
+        Worker[Node.js MQTT Worker<br/>(Railway/Render)]
+        NextJS[Next.js App & API<br/>(Vercel)]
+        Supabase[(Supabase Postgres)]
+    end
+
+    subgraph "External"
+        Telegram[Telegram API]
+        User[Admin / User]
+    end
+
+    ESP32 <-->|MQTT via Wi-Fi| HiveMQ
+    HiveMQ <-->|MQTT Subscribe| Worker
+    Worker -->|HTTP POST| NextJS
+    NextJS <-->|Read/Write Data| Supabase
+    Supabase -->|Webhooks| Telegram
+    Telegram -->|Push Alerts| User
+    User -->|Views Dashboard| NextJS
+```
+
+### 2. Data Flow (Sequence)
+This diagram illustrates the chronological step-by-step flow when a sensor reading occurs.
 
 ```mermaid
 sequenceDiagram
@@ -32,6 +76,57 @@ sequenceDiagram
     NextJS-->>Worker: 8. Return HTTP Response with status
     Worker->>HiveMQ: 9. Publish Status via MQTT
     HiveMQ->>ESP32: 10. Trigger LED & Buzzer state
+```
+
+### 3. Database Schema (ERD)
+This Entity-Relationship Diagram details the relational PostgreSQL database structure hosted on Supabase.
+
+```mermaid
+erDiagram
+    sensor_readings ||--o{ notifications : triggers
+    warning_rules ||--o{ notifications : generates
+    
+    sensor_readings {
+        BIGINT id PK
+        DECIMAL temperature
+        DECIMAL humidity
+        DECIMAL heat_index
+        TEXT status
+        TEXT device_id
+        TIMESTAMPTZ recorded_at
+    }
+    
+    warning_rules {
+        BIGINT id PK
+        TEXT name
+        TEXT parameter
+        TEXT condition
+        DECIMAL threshold
+        TEXT severity
+        BOOLEAN is_active
+    }
+    
+    notifications {
+        BIGINT id PK
+        BIGINT rule_id FK
+        BIGINT reading_id FK
+        TEXT severity
+        TEXT message
+        BOOLEAN is_read
+        TIMESTAMPTZ created_at
+    }
+    
+    system_settings {
+        TEXT key PK
+        TEXT value
+    }
+    
+    telegram_subscribers {
+        UUID id PK
+        TEXT chat_id
+        TEXT username
+        BOOLEAN is_active
+    }
 ```
 
 ## Comprehensive Tech Stack
@@ -84,12 +179,19 @@ sequenceDiagram
 1. Navigate to the `web` directory and copy `.env.example` to a new file named `.env.local`.
 2. Populate the Supabase credentials (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
 3. Populate the HiveMQ Cloud credentials (`HIVEMQ_HOST`, `HIVEMQ_PORT`, `HIVEMQ_USERNAME`, `HIVEMQ_PASSWORD`).
+4. Define a secure `ESP32_API_KEY` to authenticate incoming sensor payloads.
+5. Define `NEXT_PUBLIC_APP_URL` (e.g., `http://localhost:3000` for local dev or `https://your-domain.com` in production). The MQTT worker uses this to know where to send the data.
 
 ### Phase 3: Telegram Bot Integration
+> [!WARNING]  
+> **Local Development Note:** Telegram webhooks cannot reach `http://localhost`. If you are testing locally, you MUST use a tunneling service like [Ngrok](https://ngrok.com/) (`ngrok http 3000`) and use the Ngrok URL for your webhooks, OR deploy your Next.js app to Vercel first.
+
 1. Open Telegram and message `@BotFather` to create a new bot and obtain your `TELEGRAM_BOT_TOKEN`. Add this token to `.env.local`.
-2. In your Supabase Dashboard, navigate to **Database > Webhooks**.
-3. Create a new Webhook triggered by `INSERT` events on the `notifications` table.
-4. Set the Webhook URL to point to your deployed Next.js endpoint: `https://your-production-domain.com/api/webhooks/telegram`.
+2. **Inbound Webhook (Bot Commands):** Register your Next.js API with Telegram so it can receive `/start` and `/subscribe` commands. Open your browser and navigate to:
+   `https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=https://your-public-domain.com/api/webhooks/telegram-bot`
+3. **Outbound Webhook (Alerts):** In your Supabase Dashboard, navigate to **Database > Webhooks**.
+4. Create a new Webhook triggered by `INSERT` events on the `notifications` table.
+5. Set the Webhook URL to point to your deployed Next.js endpoint: `https://your-public-domain.com/api/webhooks/telegram`.
 
 ### Phase 4: Running the Platform Locally
 You will need two terminal windows to run both the Web Server and the MQTT Bridge concurrently.
@@ -108,11 +210,16 @@ node mqtt-worker.js
 ```
 
 ### Phase 5: Hardware Flashing
-1. Open the `esp32` directory in the Arduino IDE or PlatformIO.
-2. Install the `WiFiManager` library via the Library Manager.
-3. Update `esp32/smart_maggot_box/config.h` with your HiveMQ connection details.
-4. Flash the code to your ESP32 board.
-5. On boot, the ESP32 will host a "MaggotBox-Setup" Wi-Fi network for 60 seconds. Connect to it via your mobile device to input your local Wi-Fi credentials.
+1. **Wiring:** Please refer to the [ESP32 Hardware Guide](esp32/README.md) for the GPIO pinout schema and wiring instructions.
+2. Open the `esp32` directory in the Arduino IDE or PlatformIO.
+3. Install the required libraries via the Arduino Library Manager:
+   - `WiFiManager` (by tzapu)
+   - `PubSubClient` (by Nick O'Leary)
+   - `ArduinoJson` (by Benoit Blanchon)
+   - `DHT sensor library` (by Adafruit)
+4. Update `esp32/smart_maggot_box/config.h` with your HiveMQ connection details.
+5. Select your ESP32 board in the Arduino IDE (e.g., "DOIT ESP32 DEVKIT V1") and flash the code.
+6. On boot, the ESP32 will host a "MaggotBox-Setup" Wi-Fi network for 60 seconds. Connect to it via your phone or laptop to input your local Wi-Fi credentials.
 
 ## Important Notes & Best Practices
 
