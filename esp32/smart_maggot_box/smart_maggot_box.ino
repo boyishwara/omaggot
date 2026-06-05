@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #endif
 
+#include <WiFiManager.h>
 #include <PubSubClient.h>
 #include <DHT.h>
 #include <ArduinoJson.h>
@@ -57,13 +58,41 @@ void loop() {
 }
 
 void connectWiFi() {
-  Serial.print("Connecting to WiFi");
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  Serial.println("Starting WiFiManager...");
+  WiFiManager wifiManager;
+  
+  // Set the portal to stay open for 60 seconds (1 minute)
+  wifiManager.setConfigPortalTimeout(60);
+  
+  Serial.println("Opening setup window for 60 seconds...");
+  Serial.println("Connect to 'MaggotBox-Setup' NOW if you want to change WiFi.");
+  
+  // This FORCES the portal to open every time it boots.
+  // If you configure it within 60s, it saves and connects.
+  // If you do nothing, it times out (returns false) and moves on.
+  if (!wifiManager.startConfigPortal("MaggotBox-Setup")) {
+    Serial.println("Setup window closed. Attempting to connect to saved WiFi...");
+    
+    // Attempt to connect using the previously saved credentials
+    WiFi.begin(); 
+    int retries = 0;
+    while (WiFi.status() != WL_CONNECTED && retries < 20) {
+      delay(500);
+      Serial.print(".");
+      retries++;
+    }
+    
+    // If it still can't connect after retrying, restart to try again
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("\nFailed to connect to saved WiFi. Restarting...");
+      delay(3000);
+      ESP.restart(); 
+    }
   }
-  Serial.println("\nWiFi connected");
+  
+  Serial.println("\nWiFi connected successfully!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void connectMQTT() {

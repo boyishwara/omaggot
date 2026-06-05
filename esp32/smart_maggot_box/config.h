@@ -2,8 +2,7 @@
 #define CONFIG_H
 
 // WiFi Configuration
-#define WIFI_SSID "Arashi"
-#define WIFI_PASSWORD "farrelfvlog"
+// We use WiFiManager now, so no hardcoded SSID/Password is needed here.
 
 // API & MQTT Configuration
 #define HIVEMQ_HOST "e89ede5cee8445aa808be2775eb952fb.s1.eu.hivemq.cloud"
