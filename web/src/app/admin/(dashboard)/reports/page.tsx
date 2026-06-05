@@ -41,9 +41,9 @@ const PRESETS = [
 ];
 
 const FORMATS: { value: ExportFormat; label: string; desc: string }[] = [
-  { value: 'xlsx', label: 'Excel (.xlsx)', desc: 'Best for spreadsheet analysis — opens in Excel, Google Sheets' },
-  { value: 'csv', label: 'CSV (.csv)', desc: 'Universal — works with any tool, databases, Python/pandas' },
-  { value: 'tsv', label: 'TSV (.tsv)', desc: 'Tab-separated — ideal for direct paste into Excel' },
+  { value: 'xlsx', label: 'Excel (.xlsx)', desc: 'Best for spreadsheet analysis - opens in Excel, Google Sheets' },
+  { value: 'csv', label: 'CSV (.csv)', desc: 'Universal - works with any tool, databases, Python/pandas' },
+  { value: 'tsv', label: 'TSV (.tsv)', desc: 'Tab-separated - ideal for direct paste into Excel' },
   { value: 'json', label: 'JSON (.json)', desc: 'For developers and API integrations' },
 ];
 
@@ -52,7 +52,7 @@ const DELETE_STRATEGIES: { value: DeleteStrategy; label: string; desc: string; c
   { value: 'date_range', label: 'Date Range', desc: 'Delete all readings between two dates', color: 'text-orange-600 bg-orange-50 border-orange-200' },
   { value: 'older_than', label: 'Older Than…', desc: 'Delete data older than N days (save storage)', color: 'text-rose-600 bg-rose-50 border-rose-200' },
   { value: 'by_status', label: 'By Status', desc: 'Delete only NORMAL readings (keep alert history)', color: 'text-purple-600 bg-purple-50 border-purple-200' },
-  { value: 'all', label: 'Delete ALL', desc: 'Wipe entire sensor history — irreversible!', color: 'text-red-700 bg-red-50 border-red-300' },
+  { value: 'all', label: 'Delete ALL', desc: 'Wipe entire sensor history - irreversible!', color: 'text-red-700 bg-red-50 border-red-300' },
 ];
 
 // ─── sub-components ──────────────────────────────────────────────────────────
@@ -83,10 +83,10 @@ function StatusBar({ label, count, total, color }: { label: string; count: numbe
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
 function ExportModal({
-  open, onClose, format, setFormat, onConfirm, fromDate, toDate, statusFilter, stats,
+  open, onClose, format, setFormat, onConfirm, fromDate, toDate, stats,
 }: {
   open: boolean; onClose: () => void; format: ExportFormat; setFormat: (f: ExportFormat) => void;
-  onConfirm: () => void; fromDate: string; toDate: string; statusFilter: string; stats: Stats | null;
+  onConfirm: () => void; fromDate: string; toDate: string; stats: Stats | null;
 }) {
   return (
     <AnimatePresence>
@@ -99,8 +99,7 @@ function ExportModal({
             </div>
             <div className="p-5 space-y-4">
               <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-sm text-teal-700 space-y-0.5">
-                <p><span className="font-semibold">{stats?.count.toLocaleString() ?? '—'} records</span> from <span className="font-semibold">{fromDate}</span> to <span className="font-semibold">{toDate}</span></p>
-                <p>Filter: <span className="font-semibold capitalize">{statusFilter}</span></p>
+                <p><span className="font-semibold">{stats?.count.toLocaleString() ?? '-'} records</span> from <span className="font-semibold">{fromDate}</span> to <span className="font-semibold">{toDate}</span></p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-slate-700">Choose format</p>
@@ -152,7 +151,7 @@ function DeleteModal({
                 <div className="grid grid-cols-1 gap-1.5">
                   {DELETE_STRATEGIES.map((s) => (
                     <button key={s.value} onClick={() => { setStrategy(s.value); setConfirmText(''); }} className={`w-full text-left px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${strategy === s.value ? s.color : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'}`}>
-                      {s.label} <span className="font-normal text-xs opacity-70">— {s.desc}</span>
+                      {s.label} <span className="font-normal text-xs opacity-70">- {s.desc}</span>
                     </button>
                   ))}
                 </div>
@@ -229,7 +228,6 @@ function DeleteModal({
 export default function ReportsPage() {
   const [fromDate, setFromDate] = useState(toDateStr(new Date(Date.now() - 7 * 86400000)));
   const [toDate, setToDate] = useState(toDateStr(new Date()));
-  const [statusFilter, setStatusFilter] = useState('all');
   const [stats, setStats] = useState<Stats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
@@ -284,7 +282,7 @@ export default function ReportsPage() {
     } finally {
       setLoadingStats(false);
     }
-  }, [fromDate, toDate, statusFilter]);
+  }, [fromDate, toDate]);
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
@@ -294,7 +292,7 @@ export default function ReportsPage() {
   };
 
   const handleExport = () => {
-    let url = `/api/export?format=${exportFormat}&status=${statusFilter}`;
+    let url = `/api/export?format=${exportFormat}`;
     if (fromDate) url += `&from=${fromDate}T00:00:00Z`;
     if (toDate) url += `&to=${toDate}T23:59:59Z`;
     window.open(url, '_blank');
@@ -363,17 +361,6 @@ export default function ReportsPage() {
                   <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-9 text-sm" />
                 </div>
               </div>
-              {/* Status filter */}
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500">Status</label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="flex h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 focus:ring-2 focus:ring-teal-500/50 outline-none">
-                  <option value="all">All</option>
-                  <option value="normal">Normal</option>
-                  <option value="warning">Warning</option>
-                  <option value="danger">Danger</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -430,7 +417,7 @@ export default function ReportsPage() {
       <ExportModal
         open={exportOpen} onClose={() => setExportOpen(false)} format={exportFormat}
         setFormat={setExportFormat} onConfirm={handleExport} fromDate={fromDate}
-        toDate={toDate} statusFilter={statusFilter} stats={stats}
+        toDate={toDate} stats={stats}
       />
       <DeleteModal
         open={deleteOpen} onClose={() => setDeleteOpen(false)} onConfirm={handleDelete}

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const notifId = String(payload.id);
     const now = Date.now();
     if (recentlySent.has(notifId)) {
-      console.warn(`[Telegram] Duplicate webhook for notification ${notifId} — skipping.`);
+      console.warn(`[Telegram] Duplicate webhook for notification ${notifId} - skipping.`);
       return NextResponse.json({ success: true, message: 'Duplicate suppressed' });
     }
     recentlySent.set(notifId, now);

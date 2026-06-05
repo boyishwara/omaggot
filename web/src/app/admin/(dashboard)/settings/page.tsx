@@ -143,7 +143,7 @@ export default function SettingsPage() {
             <CardHeader><CardTitle className="flex items-center gap-2"><Send className="h-4 w-4 text-teal-500" />Diagnostics</CardTitle></CardHeader>
             <CardContent className="space-y-5">
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed">
-                Send a simulated <span className="font-semibold text-slate-800">CRITICAL</span> alert to verify your notification pipeline end-to-end — this will send a real Telegram message to all active subscribers.
+                Send a simulated <span className="font-semibold text-slate-800">CRITICAL</span> alert to verify your notification pipeline end-to-end - this will send a real Telegram message to all active subscribers.
               </div>
               <Button
                 variant="secondary"
