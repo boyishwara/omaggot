@@ -23,7 +23,15 @@ export async function POST(request: Request) {
 
     let replyMessage = '';
 
-    if (command === '/start' || command === '/subscribe') {
+    if (command === '/start') {
+      replyMessage = `👋 *Welcome to Smart Maggot Box Bot!*\n\n` +
+                     `I can help you monitor the real-time conditions of your BSF maggot cultivation box.\n\n` +
+                     `*Available Commands:*\n` +
+                     `👉 /subscribe - Start receiving Danger and Critical alerts automatically\n` +
+                     `👉 /unsubscribe - Stop receiving automatic alerts\n` +
+                     `👉 /status - Check the current temperature and humidity immediately\n\n` +
+                     `Use /status to get an instant reading right now!`;
+    } else if (command === '/subscribe') {
       // Upsert subscriber
       const { error } = await supabase
         .from('telegram_subscribers')
@@ -39,7 +47,7 @@ export async function POST(request: Request) {
         );
 
       if (error) throw error;
-      replyMessage = '✅ Successfully subscribed to Smart Maggot Box alerts! You will receive notifications when conditions become critical.\n\nSend /unsubscribe at any time to stop alerts.';
+      replyMessage = '✅ *Successfully subscribed!* You will now receive automatic alerts when conditions become critical.\n\nSend /unsubscribe at any time to stop alerts.';
     
     } else if (command === '/unsubscribe') {
       // Deactivate subscriber
@@ -49,10 +57,29 @@ export async function POST(request: Request) {
         .eq('chat_id', chatId);
 
       if (error) throw error;
-      replyMessage = '❌ Unsubscribed from alerts. Send /subscribe if you wish to receive them again.';
+      replyMessage = '❌ *Unsubscribed.* You will no longer receive alerts. Send /subscribe if you wish to receive them again.';
     
+    } else if (command === '/status') {
+      // Fetch latest reading
+      const { data: latestReading, error } = await supabase
+        .from('sensor_readings')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+      if (error || !latestReading) {
+        replyMessage = '⚠️ Unable to fetch the latest sensor reading. Is the device online?';
+      } else {
+        const timeAgo = Math.floor((new Date().getTime() - new Date(latestReading.recorded_at).getTime()) / 1000 / 60);
+        replyMessage = `📊 *Current Status*\n\n` +
+                       `🌡️ *Temperature:* ${latestReading.temperature}°C\n` +
+                       `💧 *Humidity:* ${latestReading.humidity}%\n` +
+                       `🔥 *Heat Index:* ${latestReading.heat_index}°C\n\n` +
+                       `_Last updated: ${timeAgo === 0 ? 'Just now' : `${timeAgo} mins ago`}_`;
+      }
     } else {
-      replyMessage = 'I only understand /subscribe and /unsubscribe.';
+      replyMessage = 'I only understand /start, /subscribe, /unsubscribe, and /status.';
     }
 
     // Send reply back to Telegram
