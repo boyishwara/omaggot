@@ -5,9 +5,12 @@
 #define WIFI_SSID "Arashi"
 #define WIFI_PASSWORD "farrelfvlog"
 
-// API Configuration
-// Ganti IP dengan IP lokal laptop/server yang menjalankan Next.js
-#define API_URL "http://172.20.10.2:3000/api/sensor"
+// API & MQTT Configuration
+#define HIVEMQ_HOST "e89ede5cee8445aa808be2775eb952fb.s1.eu.hivemq.cloud"
+#define HIVEMQ_PORT 8883
+#define HIVEMQ_USERNAME "boy_hivemq"
+#define HIVEMQ_PASSWORD "WsJYAEpM42d3ufC"
+
 #define API_KEY "maggot-secret-key-2024"
 #if defined(ESP8266)
 #define DEVICE_ID "esp8266-001"

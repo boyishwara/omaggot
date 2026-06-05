@@ -61,9 +61,23 @@ export async function POST(request: Request) {
 
     if (insertError) throw insertError;
 
-    // Insert notifications if needed (only for calculated status to avoid spamming fake alerts)
-    if (calculatedStatus !== 'NORMAL' && severityRules.length > 0) {
-      const notificationsToInsert = severityRules.map(rule => ({
+    // Insert notifications if needed
+    let notificationsToInsert: any[] = [];
+    
+    // 1. If simulating, create a fake alert to test Telegram
+    if (simulationStatus === 'DANGER' || simulationStatus === 'WARNING') {
+      notificationsToInsert.push({
+        rule_name: `TEST: Simulation ${simulationStatus}`,
+        severity: simulationStatus,
+        message: `This is a test alert triggered by the admin simulation panel.`,
+        reading_id: readingData.id,
+        temperature: temperature,
+        humidity: humidity
+      });
+    } 
+    // 2. Otherwise, if normal rules triggered, insert real alerts
+    else if (calculatedStatus !== 'NORMAL' && severityRules.length > 0) {
+      notificationsToInsert = severityRules.map(rule => ({
         rule_id: rule.id,
         rule_name: rule.name,
         severity: rule.severity,
@@ -72,7 +86,9 @@ export async function POST(request: Request) {
         temperature: temperature,
         humidity: humidity
       }));
+    }
 
+    if (notificationsToInsert.length > 0) {
       await supabase.from('notifications').insert(notificationsToInsert);
     }
 

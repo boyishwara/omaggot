@@ -1,19 +1,23 @@
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include <WiFiClient.h>
 #else
 #include <WiFi.h>
-#include <HTTPClient.h>
 #endif
 
+#include <PubSubClient.h>
 #include <DHT.h>
 #include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
 #include "config.h"
 
 DHT dht(DHTPIN, DHTTYPE);
 
+// WiFi & MQTT Clients
+WiFiClientSecure espClient;
+PubSubClient mqtt(espClient);
+
 unsigned long lastReadTime = 0;
+String currentStatus = "NORMAL";
 
 void setup() {
   Serial.begin(115200);
@@ -24,6 +28,11 @@ void setup() {
   
   dht.begin();
   
+  // HiveMQ uses TLS port 8883, we must skip cert verification for simplicity on ESP
+  espClient.setInsecure(); 
+  mqtt.setServer(HIVEMQ_HOST, HIVEMQ_PORT);
+  mqtt.setCallback(mqttCallback);
+
   connectWiFi();
 }
 
@@ -32,26 +41,63 @@ void loop() {
     connectWiFi();
   }
   
+  if (!mqtt.connected()) {
+    connectMQTT();
+  }
+  
+  mqtt.loop();
+  
+  // Continuously update LEDs and Buzzer based on currentStatus
+  updateHardwareIndicators();
+  
   if (millis() - lastReadTime >= SENSOR_INTERVAL) {
     lastReadTime = millis();
-    readAndSendData();
+    readAndPublishData();
   }
 }
 
 void connectWiFi() {
   Serial.print("Connecting to WiFi");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("\nWiFi connected");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
 }
 
-void readAndSendData() {
+void connectMQTT() {
+  while (!mqtt.connected()) {
+    Serial.print("Connecting to HiveMQ MQTT...");
+    String clientId = "ESP32Client-" + String(random(0xffff), HEX);
+    
+    // Connect using credentials from config.h
+    if (mqtt.connect(clientId.c_str(), HIVEMQ_USERNAME, HIVEMQ_PASSWORD)) {
+      Serial.println("connected");
+      // Subscribe to status updates from the Node.js backend
+      mqtt.subscribe("maggotbox/sensor/status");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqtt.state());
+      Serial.println(" try again in 5 seconds");
+      delay(5000);
+    }
+  }
+}
+
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  String message;
+  for (int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  
+  if (String(topic) == "maggotbox/sensor/status") {
+    Serial.println("Received status: " + message);
+    currentStatus = message;
+  }
+}
+
+void readAndPublishData() {
   float h = dht.readHumidity();
   float t = dht.readTemperature();
   
@@ -62,87 +108,49 @@ void readAndSendData() {
   
   Serial.print("Temp: ");
   Serial.print(t);
-  Serial.print(" C, Humidity: ");
-  Serial.print(h);
-  Serial.println(" %");
+  Serial.println(" C");
 
-  // HTTP POST
-  if (WiFi.status() == WL_CONNECTED) {
-#if defined(ESP8266)
-    WiFiClient client;
-    HTTPClient http;
-    http.begin(client, API_URL);
-#else
-    HTTPClient http;
-    http.begin(API_URL);
-#endif
-    http.addHeader("Content-Type", "application/json");
-    
-    StaticJsonDocument<200> doc;
-    doc["temperature"] = t;
-    doc["humidity"] = h;
-    doc["device_id"] = DEVICE_ID;
-    doc["api_key"] = API_KEY;
-    
-    String requestBody;
-    serializeJson(doc, requestBody);
-    
-    int httpResponseCode = http.POST(requestBody);
-    
-    if (httpResponseCode > 0) {
-      String response = http.getString();
-      Serial.println(httpResponseCode);
-      Serial.println(response);
-      
-      // Parse response to get final status determined by the server rules
-      StaticJsonDocument<200> responseDoc;
-      DeserializationError error = deserializeJson(responseDoc, response);
-      
-      if (!error && responseDoc["success"] == true) {
-        String status = responseDoc["data"]["status"];
-        handleLocalIndicators(status);
-      }
-    } else {
-      Serial.print("Error on sending POST: ");
-      Serial.println(httpResponseCode);
-      handleLocalFallbackIndicators(t, h);
-    }
-    
-    http.end();
+  // Create JSON payload
+  StaticJsonDocument<200> doc;
+  doc["temperature"] = t;
+  doc["humidity"] = h;
+  doc["device_id"] = DEVICE_ID;
+  
+  char jsonBuffer[512];
+  serializeJson(doc, jsonBuffer);
+  
+  // Publish to HiveMQ
+  if (mqtt.publish("maggotbox/sensor/data", jsonBuffer)) {
+    Serial.println("Data published successfully via MQTT");
+  } else {
+    Serial.println("Failed to publish data via MQTT");
+    handleLocalFallbackIndicators(t, h);
   }
 }
 
-void handleLocalIndicators(String status) {
-  if (status == "NORMAL") {
+void updateHardwareIndicators() {
+  if (currentStatus == "NORMAL" || currentStatus == "NONE") {
     digitalWrite(LED_GREEN, HIGH);
     digitalWrite(LED_RED, LOW);
     noTone(BUZZER);
-  } else if (status == "WARNING") {
-    // Blink green
+  } else if (currentStatus == "WARNING") {
     digitalWrite(LED_GREEN, millis() % 1000 < 500 ? HIGH : LOW);
     digitalWrite(LED_RED, LOW);
     noTone(BUZZER);
-  } else if (status == "DANGER") {
+  } else if (currentStatus == "DANGER") {
     digitalWrite(LED_GREEN, LOW);
     digitalWrite(LED_RED, HIGH);
-    // Beep buzzer slowly
     if (millis() % 2000 < 1000) tone(BUZZER, 1000);
     else noTone(BUZZER);
-  } else if (status == "CRITICAL") {
-    digitalWrite(LED_GREEN, LOW);
-    // Blink red quickly
-    digitalWrite(LED_RED, millis() % 400 < 200 ? HIGH : LOW);
-    // Continuous buzzer
-    tone(BUZZER, 1000);
   }
 }
 
 void handleLocalFallbackIndicators(float t, float h) {
   if (t > TEMP_DANGER_HIGH || t < TEMP_DANGER_LOW || h > HUMIDITY_DANGER_HIGH || h < HUMIDITY_DANGER_LOW) {
-    handleLocalIndicators("CRITICAL");
+    currentStatus = "DANGER";
   } else if (t > TEMP_WARNING_HIGH || t < TEMP_WARNING_LOW || h > HUMIDITY_WARNING_HIGH || h < HUMIDITY_WARNING_LOW) {
-    handleLocalIndicators("WARNING");
+    currentStatus = "WARNING";
   } else {
-    handleLocalIndicators("NORMAL");
+    currentStatus = "NORMAL";
   }
 }

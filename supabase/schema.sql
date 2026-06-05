@@ -68,4 +68,40 @@ INSERT INTO system_settings (key, value) VALUES
   ('email_notifications_enabled', 'false'),
   ('admin_email', ''),
   ('device_id', 'esp32-001'),
-  ('system_name', 'Smart Maggot Box');
+  ('system_name', 'Smart Maggot Box'),
+  ('simulation_status', 'NONE');
+
+-- ==========================================
+-- TELEGRAM SUBSCRIBERS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS telegram_subscribers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chat_id TEXT UNIQUE NOT NULL,
+    username TEXT,
+    first_name TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Index for fast lookup of active subscribers
+CREATE INDEX idx_telegram_subscribers_active ON telegram_subscribers(is_active);
+
+-- ==========================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ==========================================
+ALTER TABLE sensor_readings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE warning_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE telegram_subscribers ENABLE ROW LEVEL SECURITY;
+
+-- Allow read access to authenticated users only
+CREATE POLICY "Allow authenticated read sensor_readings" ON sensor_readings FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated read warning_rules" ON warning_rules FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated read notifications" ON notifications FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated read system_settings" ON system_settings FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated read telegram_subscribers" ON telegram_subscribers FOR SELECT TO authenticated USING (true);
+
+-- Backend API and MQTT Worker will use the Service Role Key, which bypasses RLS automatically.
+-- This ensures the public Anon key cannot insert, update, or delete records.
