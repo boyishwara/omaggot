@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { ThermometerSun, Droplets, Activity, Wifi, BellRing } from 'lucide-react';
+import { ThermometerSun, Droplets, Activity, Wifi, BellRing, RefreshCw } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { SensorReading } from '@/types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
@@ -11,12 +11,16 @@ export default function DashboardPage() {
   const supabase = createClient();
   const [latestData, setLatestData] = useState<SensorReading | null>(null);
   const [historyData, setHistoryData] = useState<SensorReading[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [isDeviceOnline, setIsDeviceOnline] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [simulationStatus, setSimulationStatus] = useState('NONE');
+  const [isSimulating, setIsSimulating] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
 
-    const subscription = supabase
+    const dataSubscription = supabase
       .channel('schema-db-changes')
       .on(
         'postgres_changes',
@@ -30,7 +34,21 @@ export default function DashboardPage() {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(subscription); };
+    const notifSubscription = supabase
+      .channel('schema-notif-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications' },
+        (payload) => {
+          setNotifications(prev => [payload.new, ...prev].slice(0, 50));
+        }
+      )
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(dataSubscription); 
+      supabase.removeChannel(notifSubscription); 
+    };
   }, []);
 
   useEffect(() => {
@@ -47,11 +65,39 @@ export default function DashboardPage() {
   }, [latestData]);
 
   const fetchInitialData = async () => {
+    setIsRefreshing(true);
     const { data } = await supabase.from('sensor_readings').select('*').order('recorded_at', { ascending: false }).limit(50);
     if (data && data.length > 0) {
       setLatestData(data[0]);
       setHistoryData(data);
     }
+    
+    const { data: notifs } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(20);
+    if (notifs) {
+      setNotifications(notifs);
+    }
+
+    const { data: simSetting } = await supabase.from('system_settings').select('value').eq('key', 'simulation_status').single();
+    if (simSetting) {
+      setSimulationStatus(simSetting.value);
+    }
+    
+    setIsRefreshing(false);
+  };
+
+  const handleSimulate = async (status: string) => {
+    setIsSimulating(true);
+    try {
+      await fetch('/api/simulation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      setSimulationStatus(status);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsSimulating(false);
   };
 
   const chartData = [...historyData].reverse().map(d => ({
@@ -69,6 +115,20 @@ export default function DashboardPage() {
         </div>
         
         <div className="flex items-center space-x-3 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200/80">
+          <div className="flex items-center space-x-2 mr-2">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Test Hardware:</span>
+            <select 
+              value={simulationStatus}
+              onChange={(e) => handleSimulate(e.target.value)}
+              disabled={isSimulating}
+              className="text-sm bg-white border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-teal-500 outline-none"
+            >
+              <option value="NONE">Normal (Auto)</option>
+              <option value="WARNING">Test Warning</option>
+              <option value="DANGER">Test Danger</option>
+            </select>
+          </div>
+          <div className="h-4 w-px bg-slate-300"></div>
           <div className="flex items-center space-x-2">
             <div className={`w-2.5 h-2.5 rounded-full ${isDeviceOnline ? 'bg-teal-500 animate-pulse shadow-[0_0_8px_rgba(20,184,166,0.8)]' : 'bg-slate-400'}`}></div>
             <span className="text-sm font-semibold text-slate-700">{isDeviceOnline ? 'ESP32 Online' : 'Device Offline'}</span>
@@ -133,8 +193,16 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle>Historical Trends</CardTitle>
+            <button 
+              onClick={fetchInitialData} 
+              disabled={isRefreshing}
+              className="p-1.5 rounded-md hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-200 border border-slate-200"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`h-4 w-4 text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </CardHeader>
           <CardContent>
             <div className="h-[350px] w-full mt-4">
@@ -176,13 +244,44 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="h-[350px] overflow-y-auto p-0">
-            <div className="p-8 text-center h-full flex flex-col justify-center items-center text-slate-400">
-              <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-6 border border-slate-700 shadow-inner">
-                <BellRing className="h-8 w-8 text-slate-500" />
+            {notifications.length > 0 ? (
+              <div className="divide-y divide-slate-800">
+                {notifications.map((notif) => (
+                  <div key={notif.id} className="p-4 hover:bg-slate-800/50 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          notif.severity === 'CRITICAL' ? 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 
+                          notif.severity === 'DANGER' ? 'bg-orange-500' : 
+                          'bg-amber-500'
+                        }`}></div>
+                        <span className="font-semibold text-slate-200 text-sm">{notif.rule_name}</span>
+                      </div>
+                      <span className="text-xs text-slate-500">
+                        {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-400 mt-2">{notif.message}</p>
+                    <div className="flex items-center space-x-3 mt-3">
+                      <Badge variant="outline" className="text-xs border-slate-700 text-slate-400 font-mono">
+                        {notif.temperature}°C
+                      </Badge>
+                      <Badge variant="outline" className="text-xs border-slate-700 text-slate-400 font-mono">
+                        {notif.humidity}%
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="font-medium text-slate-300">No active alerts.</p>
-              <p className="text-sm mt-2 leading-relaxed">All environmental parameters are within optimal ranges.</p>
-            </div>
+            ) : (
+              <div className="p-8 text-center h-full flex flex-col justify-center items-center text-slate-400">
+                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-6 border border-slate-700 shadow-inner">
+                  <BellRing className="h-8 w-8 text-slate-500" />
+                </div>
+                <p className="font-medium text-slate-300">No active alerts.</p>
+                <p className="text-sm mt-2 leading-relaxed">All environmental parameters are within optimal ranges.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

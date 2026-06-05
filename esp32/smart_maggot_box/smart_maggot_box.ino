@@ -1,5 +1,12 @@
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#else
 #include <WiFi.h>
 #include <HTTPClient.h>
+#endif
+
 #include <DHT.h>
 #include <ArduinoJson.h>
 #include "config.h"
@@ -61,8 +68,14 @@ void readAndSendData() {
 
   // HTTP POST
   if (WiFi.status() == WL_CONNECTED) {
+#if defined(ESP8266)
+    WiFiClient client;
+    HTTPClient http;
+    http.begin(client, API_URL);
+#else
     HTTPClient http;
     http.begin(API_URL);
+#endif
     http.addHeader("Content-Type", "application/json");
     
     StaticJsonDocument<200> doc;

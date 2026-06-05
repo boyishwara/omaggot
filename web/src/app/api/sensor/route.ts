@@ -29,8 +29,22 @@ export async function POST(request: Request) {
 
     if (rulesError) throw rulesError;
 
+    // Fetch simulation status
+    const { data: simSetting } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'simulation_status')
+      .single();
+      
+    const simulationStatus = simSetting?.value || 'NONE';
+
     // Determine status
-    const { status, severityRules } = determineStatus(temperature, humidity, rules || []);
+    const { status: calculatedStatus, severityRules } = determineStatus(temperature, humidity, rules || []);
+    
+    // Override status if simulation is active and not NONE
+    const finalStatus = (simulationStatus !== 'NONE' && simulationStatus !== 'NORMAL') 
+      ? simulationStatus 
+      : calculatedStatus;
 
     // Insert reading
     const { data: readingData, error: insertError } = await supabase
@@ -39,7 +53,7 @@ export async function POST(request: Request) {
         temperature,
         humidity,
         heat_index: heatIndex,
-        status,
+        status: finalStatus,
         device_id: device_id || 'esp32-001'
       })
       .select('id, status, heat_index')
@@ -47,8 +61,8 @@ export async function POST(request: Request) {
 
     if (insertError) throw insertError;
 
-    // Insert notifications if needed
-    if (status !== 'NORMAL' && severityRules.length > 0) {
+    // Insert notifications if needed (only for calculated status to avoid spamming fake alerts)
+    if (calculatedStatus !== 'NORMAL' && severityRules.length > 0) {
       const notificationsToInsert = severityRules.map(rule => ({
         rule_id: rule.id,
         rule_name: rule.name,

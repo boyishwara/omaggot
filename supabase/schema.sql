@@ -48,6 +48,14 @@ CREATE INDEX idx_notif_is_read ON notifications(is_read);
 -- Realtime enabled untuk notifikasi live
 ALTER TABLE notifications REPLICA IDENTITY FULL;
 
+-- Aktifkan Realtime untuk kedua tabel (Wajib untuk Supabase Realtime via WebSockets)
+BEGIN;
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  CREATE PUBLICATION supabase_realtime;
+COMMIT;
+ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
+ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+
 -- Pengaturan global sistem
 CREATE TABLE system_settings (
   key   TEXT PRIMARY KEY,
