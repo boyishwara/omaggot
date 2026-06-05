@@ -260,10 +260,10 @@ export default function DashboardClient({
                     </div>
                     <p className="text-sm text-slate-400 mt-2">{notif.message}</p>
                     <div className="flex items-center space-x-3 mt-3">
-                      <Badge variant="outline" className="text-xs border-slate-700 text-slate-400 font-mono">
+                      <Badge variant="solid" className="text-xs border-slate-700 text-slate-400 font-mono">
                         {notif.temperature}°C
                       </Badge>
-                      <Badge variant="outline" className="text-xs border-slate-700 text-slate-400 font-mono">
+                      <Badge variant="solid" className="text-xs border-slate-700 text-slate-400 font-mono">
                         {notif.humidity}%
                       </Badge>
                     </div>
