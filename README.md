@@ -1,10 +1,10 @@
-# Smart Maggot Box V2 🪰🚀
+# Smart Maggot Box V2 
 
 An enterprise grade Internet of Things (IoT) environmental monitoring system specifically designed for Black Soldier Fly (BSF) Maggot cultivation. 
 
 BSF maggots require precise temperature and humidity ranges to thrive. This system provides real time monitoring, automated alerts, and comprehensive historical data analysis to ensure optimal breeding conditions and maximize yield.
 
-## 🏗️ Architecture Diagram
+##  Architecture Diagram
 
 ```mermaid
 sequenceDiagram
@@ -34,7 +34,7 @@ sequenceDiagram
     HiveMQ->>ESP32: 10. Trigger LED & Buzzer state
 ```
 
-## 🛠️ Comprehensive Tech Stack
+##  Comprehensive Tech Stack
 
 ### 1. Hardware: ESP32 & DHT22
 * **Function:** Reads physical temperature and humidity in the cultivation box.
@@ -64,7 +64,7 @@ sequenceDiagram
 * **Function:** Sends instant push notifications for critical environmental changes and allows users to query system status.
 * **Reason:** Telegram is a ubiquitous messaging platform, bypassing the high friction of building, deploying, and maintaining a custom mobile app strictly for push notifications.
 
-## ✨ Key Features
+##  Key Features
 
 * **Real Time Dashboard:** Live metrics updated instantly via WebSockets, featuring a responsive grid and fluid animations.
 * **Configurable Warning Rules:** Define custom thresholds (e.g., Temperature > 35C) to automatically trigger WARNING, DANGER, or CRITICAL alerts.
@@ -72,7 +72,7 @@ sequenceDiagram
 * **Advanced Data Management:** Multi strategy deletion tool allowing admins to clear data by specific day, date ranges, age (older than N days), or by severity status to optimize database storage.
 * **Interactive Telegram Bot:** Users can message the bot `/start` to see instructions, `/subscribe` to opt into real time alerts, `/status` to fetch current readings, and `/unsubscribe` to opt out. Admin dashboard also allows manual subscriber management.
 
-## 🚀 Step by Step Setup Guide
+##  Step by Step Setup Guide
 
 ### Phase 1: Database Setup (Supabase)
 1. Create a new Supabase project.
@@ -111,7 +111,7 @@ node mqtt-worker.js
 2. Update `esp32/smart_maggot_box/config.h` with your local WiFi credentials and HiveMQ connection details.
 3. Flash the code to your ESP32 board.
 
-## ⚠️ Important Notes & Best Practices
+## Important Notes & Best Practices
 
 * **Telegram Webhook Deduplication:** Supabase Webhooks can sometimes fire multiple times for a single event. The `/api/webhooks/telegram` route implements a 30 second in memory deduplication window to prevent spam. Ensure you only have ONE active webhook configured in Supabase to avoid conflicting triggers.
 * **Worker Persistence:** The `mqtt-worker.js` script must be running continuously to bridge hardware data to the database. In a production environment, this should be hosted on a persistent server (like an EC2 instance or a DigitalOcean Droplet) using a process manager such as `pm2` or encapsulated in a Docker container.
