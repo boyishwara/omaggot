@@ -1,8 +1,8 @@
 # Smart Maggot Box V2 🪰🚀
 
-An enterprise-grade, highly-optimized IoT environmental monitoring system for Black Soldier Fly (BSF) Maggot cultivation. Built with ESP32, Next.js, Supabase, and HiveMQ.
+An enterprise grade Internet of Things (IoT) environmental monitoring system specifically designed for Black Soldier Fly (BSF) Maggot cultivation. 
 
----
+BSF maggots require precise temperature and humidity ranges to thrive. This system provides real time monitoring, automated alerts, and comprehensive historical data analysis to ensure optimal breeding conditions and maximize yield.
 
 ## 🏗️ Architecture Diagram
 
@@ -15,96 +15,104 @@ sequenceDiagram
     participant Supabase as Supabase (Postgres)
     participant Telegram as Telegram Bot
     
-    ESP32->>HiveMQ: 1. Publish Temp/Humid via MQTT (Topic: maggotbox/sensor/data)
+    ESP32->>HiveMQ: 1. Publish Temp/Humid via MQTT
     HiveMQ->>Worker: 2. Forward message to Worker
     Worker->>NextJS: 3. HTTP POST to /api/sensor
     
-    NextJS->>Supabase: 4. Check warning rules & Calculate Heat Index
+    NextJS->>Supabase: 4. Check rules & Calculate Heat Index
     NextJS->>Supabase: 5. Insert to sensor_readings
     
     alt Status is DANGER / WARNING
         NextJS->>Supabase: 6a. Insert to notifications
-        Supabase-->>Telegram: 6b. Database Webhook calls /api/webhooks/telegram
-        Telegram-->>Farmer: 6c. Send Push Notification to phone
+        Supabase-->>Telegram: 6b. Webhook calls /api/webhooks/telegram
+        Telegram-->>Subscribers: 6c. Send Push Notification
     end
     
     Supabase-->>NextJS: 7. Realtime WebSockets sync UI dashboard
-    NextJS-->>Worker: 8. Return HTTP Response with calculated Status
-    Worker->>HiveMQ: 9. Publish Status via MQTT (Topic: maggotbox/sensor/status)
+    NextJS-->>Worker: 8. Return HTTP Response with status
+    Worker->>HiveMQ: 9. Publish Status via MQTT
     HiveMQ->>ESP32: 10. Trigger LED & Buzzer state
 ```
 
----
+## 🛠️ Comprehensive Tech Stack
 
-## 🛠️ Comprehensive Tech Stack Breakdown
+### 1. Hardware: ESP32 & DHT22
+* **Function:** Reads physical temperature and humidity in the cultivation box.
+* **Reason:** Highly cost effective, built in WiFi capabilities, and reliable for continuous 24/7 monitoring in humid environments.
 
-### 1. Hardware & Connectivity (ESP32 & HiveMQ)
-- **ESP32 / ESP8266**: The brains of the physical box. It reads the `DHT11`/`DHT22` sensor.
-- **Protocol: MQTT via HiveMQ Cloud**: In V1, the ESP32 used HTTP POST. HTTP is incredibly heavy for microcontrollers (requiring TLS handshakes every 10 seconds). In V2, we migrated to **MQTT** using `PubSubClient`. The ESP32 maintains a persistent, low-power connection to HiveMQ Cloud. It publishes sensor data and subscribes to a status topic to receive immediate commands (like triggering the buzzer).
+### 2. Connectivity: MQTT & HiveMQ Cloud
+* **Function:** Facilitates bi directional communication between the hardware and the backend.
+* **Reason:** MQTT is a lightweight publish/subscribe protocol ideal for IoT. It is significantly more battery and network efficient than standard HTTP polling, maintaining a low latency persistent connection.
 
-### 2. The Bridge (Node.js MQTT Worker)
-- **`mqtt-worker.js`**: Next.js App Router (Serverless) cannot natively maintain a long-running MQTT subscription without timing out. To solve this, we implemented a lightweight Node.js worker script. It connects to HiveMQ, listens to the ESP32, and acts as a bridge—passing the MQTT payload to the Next.js `/api/sensor` route and relaying the system status back to the ESP32.
+### 3. Bridge: Node.js MQTT Worker (`mqtt-worker.js`)
+* **Function:** Subscribes to the HiveMQ broker, listens for ESP32 payloads, and forwards them to the Next.js API.
+* **Reason:** Next.js API routes are serverless and cannot natively maintain long lived MQTT subscriptions without timing out. The Node.js worker acts as a robust, persistent bridge connecting the MQTT world to the HTTP serverless world.
 
-### 3. Backend & Database (Supabase)
-- **PostgreSQL Database**: Handles heavily relational data (`sensor_readings`, `warning_rules`, `notifications`).
-- **Row Level Security (RLS)**: The database is locked down. The public Anon Key can only read data, preventing malicious users from deleting sensor history. Only the authenticated Backend Service Role can insert data.
-- **Supabase Realtime (WebSockets)**: The Next.js dashboard uses `supabase.channel()` to instantly update charts and alerts without refreshing the page or spamming the API with polling.
-- **Database Webhooks**: Whenever a row is inserted into the `notifications` table, Supabase instantly fires a webhook to the Next.js server to trigger external alerts.
+### 4. Backend & Database: Supabase (PostgreSQL)
+* **Function:** Stores sensor readings, configurable warning rules, and alert notifications.
+* **Reason:** Provides a powerful relational database out of the box, complete with Row Level Security (RLS) to lock down data access, and instant Realtime WebSockets to sync UI state seamlessly.
 
-### 4. Frontend & User Experience (Next.js & React)
-- **Next.js 14 App Router**: The core framework.
-- **React Server Components (RSC)**: In V2, the dashboard `page.tsx` was refactored into a Server Component. It fetches the initial 50 rows of historical data directly on the server *before* rendering. This guarantees a 0ms layout shift and an instantaneous initial load, passing the data to the `DashboardClient` which then takes over the Realtime WebSockets.
-- **Progressive Web App (PWA)**: Using `@ducanh2912/next-pwa`, the dashboard is now installable natively on iOS, Android, macOS, and Windows. It hides the browser UI and acts as a standalone application.
-- **UI & Visualization**: Tailwind CSS v4 handles styling cleanly, while `recharts` renders the historical Area Chart.
+### 5. Frontend: Next.js 14 (App Router) & React
+* **Function:** Serves as the administrative dashboard for monitoring metrics, configuring rules, generating reports, and managing settings.
+* **Reason:** Next.js provides Server Side Rendering (SSR) for instantaneous initial page loads, excellent SEO characteristics, and secure API route integration.
 
-### 5. External Integrations (Telegram)
-- **Telegram Bot API**: Connected directly to the Supabase Webhook. Even if the dashboard is closed, critical warnings will instantly ping your phone.
+### 6. UI/UX: Tailwind CSS, Framer Motion, Recharts
+* **Function:** Handles styling, micro interactions, staggered mount animations, and historical data visualization.
+* **Reason:** Ensures a fully responsive, mobile first design that feels professional, dynamic, and highly polished on any device.
 
----
+### 7. External Alerts: Telegram Bot API
+* **Function:** Sends instant push notifications for critical environmental changes and allows users to query system status.
+* **Reason:** Telegram is a ubiquitous messaging platform, bypassing the high friction of building, deploying, and maintaining a custom mobile app strictly for push notifications.
 
-## 🚀 Quick Start Guide
+## ✨ Key Features
 
-### 1. Database & Security Setup
-1. Run `supabase/schema.sql` in your Supabase SQL Editor to generate the tables and the essential **RLS Policies**.
-2. Run the `ALTER PUBLICATION` lines at the bottom of the SQL script to enable Realtime capabilities for the UI.
+* **Real Time Dashboard:** Live metrics updated instantly via WebSockets, featuring a responsive grid and fluid animations.
+* **Configurable Warning Rules:** Define custom thresholds (e.g., Temperature > 35C) to automatically trigger WARNING, DANGER, or CRITICAL alerts.
+* **Data Reports & Export:** Analyze historical data with automatic period summaries. Export data directly to Industry Standard formats including Excel (.xlsx), CSV, TSV, and JSON.
+* **Advanced Data Management:** Multi strategy deletion tool allowing admins to clear data by specific day, date ranges, age (older than N days), or by severity status to optimize database storage.
+* **Interactive Telegram Bot:** Users can message the bot `/start` to see instructions, `/subscribe` to opt into real time alerts, `/status` to fetch current readings, and `/unsubscribe` to opt out. Admin dashboard also allows manual subscriber management.
 
-### 2. HiveMQ & Telegram Credentials
-Copy `.env.example` to `web/.env.local` and add:
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
+## 🚀 Step by Step Setup Guide
 
-# HiveMQ Cloud
-HIVEMQ_HOST=your-cluster.hivemq.cloud
-HIVEMQ_PORT=8883
-HIVEMQ_USERNAME=your_user
-HIVEMQ_PASSWORD=your_pass
+### Phase 1: Database Setup (Supabase)
+1. Create a new Supabase project.
+2. Navigate to the SQL Editor and run the contents of `supabase/schema.sql` to generate the necessary tables and Row Level Security (RLS) policies.
+3. Ensure the `ALTER PUBLICATION` commands at the end of the script are executed to enable Realtime WebSockets for the `sensor_readings` and `notifications` tables.
 
-# Telegram
-TELEGRAM_BOT_TOKEN=your_botfather_token
-TELEGRAM_CHAT_ID=your_chat_id
-```
+### Phase 2: Environment Configuration
+1. Navigate to the `web` directory and copy `.env.example` to a new file named `.env.local`.
+2. Populate the Supabase credentials (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
+3. Populate the HiveMQ Cloud credentials (`HIVEMQ_HOST`, `HIVEMQ_PORT`, `HIVEMQ_USERNAME`, `HIVEMQ_PASSWORD`).
 
-### 3. Running the Stack
-You need two terminal windows to run both the Web Server and the MQTT Bridge.
+### Phase 3: Telegram Bot Integration
+1. Open Telegram and message `@BotFather` to create a new bot and obtain your `TELEGRAM_BOT_TOKEN`. Add this token to `.env.local`.
+2. In your Supabase Dashboard, navigate to **Database > Webhooks**.
+3. Create a new Webhook triggered by `INSERT` events on the `notifications` table.
+4. Set the Webhook URL to point to your deployed Next.js endpoint: `https://your-production-domain.com/api/webhooks/telegram`.
 
-**Terminal 1 (Next.js Server):**
+### Phase 4: Running the Platform Locally
+You will need two terminal windows to run both the Web Server and the MQTT Bridge concurrently.
+
+**Terminal 1: Next.js Server**
 ```bash
 cd web
 npm install
 npm run dev
 ```
 
-**Terminal 2 (MQTT Worker):**
+**Terminal 2: MQTT Worker**
 ```bash
 cd web
 node mqtt-worker.js
 ```
 
-### 4. Hardware Flash
-Update `esp32/smart_maggot_box/config.h` with your WiFi and HiveMQ credentials, then flash it to your ESP32.
+### Phase 5: Hardware Flashing
+1. Open the `esp32` directory in the Arduino IDE or PlatformIO.
+2. Update `esp32/smart_maggot_box/config.h` with your local WiFi credentials and HiveMQ connection details.
+3. Flash the code to your ESP32 board.
 
----
-*V2: Highly optimized, memory safe, and extremely scalable.*
+## ⚠️ Important Notes & Best Practices
+
+* **Telegram Webhook Deduplication:** Supabase Webhooks can sometimes fire multiple times for a single event. The `/api/webhooks/telegram` route implements a 30 second in memory deduplication window to prevent spam. Ensure you only have ONE active webhook configured in Supabase to avoid conflicting triggers.
+* **Worker Persistence:** The `mqtt-worker.js` script must be running continuously to bridge hardware data to the database. In a production environment, this should be hosted on a persistent server (like an EC2 instance or a DigitalOcean Droplet) using a process manager such as `pm2` or encapsulated in a Docker container.
+* **RLS and API Routes:** The frontend dashboard communicates with secure Next.js API routes (e.g., `/api/rules`) rather than querying Supabase directly for write operations. These API routes utilize the Supabase Service Role Key to safely bypass Anon read only restrictions without compromising database security.
