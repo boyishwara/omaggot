@@ -19,17 +19,17 @@ export function StatCard({ label, value, unit, icon, iconBg, index = 0 }: StatCa
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.07, ease: 'easeOut' }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="bg-white rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-200/50 p-6"
+      className="bg-white rounded-2xl border border-slate-200/60 shadow-sm shadow-slate-200/50 p-4 sm:p-6"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <span className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{label}</span>
-        <div className={cn('p-2 rounded-xl', iconBg)}>{icon}</div>
+        <div className={cn('p-1.5 sm:p-2 rounded-xl', iconBg)}>{icon}</div>
       </div>
       <div className="flex items-baseline space-x-1">
         {typeof value === 'string' ? (
-          <span className="text-4xl font-bold text-slate-800 tracking-tighter font-sans">{value}</span>
+          <span className="text-2xl sm:text-4xl font-bold text-slate-800 tracking-tighter font-sans">{value}</span>
         ) : value}
-        {unit && <span className="text-slate-400 font-semibold text-lg">{unit}</span>}
+        {unit && <span className="text-slate-400 font-semibold text-sm sm:text-lg">{unit}</span>}
       </div>
     </motion.div>
   );
