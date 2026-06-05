@@ -60,13 +60,23 @@ export async function POST(request: Request) {
       replyMessage = '❌ *Unsubscribed.* You will no longer receive alerts. Send /subscribe if you wish to receive them again.';
     
     } else if (command === '/status') {
-      // Fetch latest reading
-      const { data: latestReading, error } = await supabase
-        .from('sensor_readings')
-        .select('*')
-        .order('recorded_at', { ascending: false })
-        .limit(1)
+      // Check if user is subscribed first
+      const { data: subscriber } = await supabase
+        .from('telegram_subscribers')
+        .select('is_active')
+        .eq('chat_id', chatId)
         .single();
+        
+      if (!subscriber || !subscriber.is_active) {
+        replyMessage = '🔒 *Access Denied.*\n\nYou must be subscribed to view the live status. Send /subscribe to gain access.';
+      } else {
+        // Fetch latest reading
+        const { data: latestReading, error } = await supabase
+          .from('sensor_readings')
+          .select('*')
+          .order('recorded_at', { ascending: false })
+          .limit(1)
+          .single();
         
       if (error || !latestReading) {
         replyMessage = '⚠️ Unable to fetch the latest sensor reading. Is the device online?';
@@ -78,6 +88,7 @@ export async function POST(request: Request) {
                        `🔥 *Heat Index:* ${latestReading.heat_index}°C\n\n` +
                        `_Last updated: ${timeAgo === 0 ? 'Just now' : `${timeAgo} mins ago`}_`;
       }
+      }
     } else {
       replyMessage = 'I only understand /start, /subscribe, /unsubscribe, and /status.';
     }
@@ -88,7 +99,8 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text: replyMessage
+        text: replyMessage,
+        parse_mode: 'Markdown'
       })
     });
 
