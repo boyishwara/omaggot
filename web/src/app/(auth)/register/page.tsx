@@ -63,7 +63,10 @@ export default function RegisterPage() {
             <div className="space-y-2.5">
               <label className="text-sm font-semibold text-slate-700 block">Full Name</label>
               <input 
+                id="name"
+                name="name"
                 type="text" 
+                autoComplete="name"
                 value={name} 
                 onChange={(e) => setName(e.target.value)} 
                 placeholder="John Doe"
@@ -75,7 +78,10 @@ export default function RegisterPage() {
             <div className="space-y-2.5">
               <label className="text-sm font-semibold text-slate-700 block">Email Address</label>
               <input 
+                id="email"
+                name="email"
                 type="email" 
+                autoComplete="email"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 placeholder="john@example.com"
@@ -87,7 +93,10 @@ export default function RegisterPage() {
             <div className="space-y-2.5">
               <label className="text-sm font-semibold text-slate-700 block">Password</label>
               <input 
+                id="password"
+                name="password"
                 type="password" 
+                autoComplete="new-password"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

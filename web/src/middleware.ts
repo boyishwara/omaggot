@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -31,12 +31,21 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  const { pathname } = request.nextUrl
 
-  // If user is logged in and trying to access auth pages, redirect to dashboard
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/dashboard/dashboard', request.url))
+  // Auth pages: login, register, forgot-password, update-password
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/update-password')
+
+  const isDashboardRoute = pathname.startsWith('/dashboard')
+
+  // If user is logged in and trying to access auth pages (except update-password which needs auth),
+  // redirect to dashboard
+  if (user && (pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password'))) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   // If user is not logged in and trying to access dashboard routes, redirect to login

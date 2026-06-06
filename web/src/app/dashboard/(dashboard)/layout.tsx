@@ -18,10 +18,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single();
 
-  // Fallback profile if it doesn't exist yet
+  // Fallback profile if it doesn't exist yet (e.g. older accounts)
   const userProfile = profile || { 
-    name: user.email?.split('@')[0] || 'User', 
-    role: 'user', 
+    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User', 
+    role: user.user_metadata?.role || 'user', 
     is_approved: true 
   };
 

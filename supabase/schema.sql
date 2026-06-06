@@ -122,6 +122,12 @@ CREATE POLICY "Users can read own profile" ON user_profiles
     FOR SELECT TO authenticated
     USING (auth.uid() = id);
 
+-- Users can update their own profile name
+CREATE POLICY "Users can update own profile" ON user_profiles
+    FOR UPDATE TO authenticated
+    USING (auth.uid() = id)
+    WITH CHECK (auth.uid() = id);
+
 -- Superadmins can read all profiles
 CREATE POLICY "Superadmins can read all profiles" ON user_profiles
     FOR SELECT TO authenticated
