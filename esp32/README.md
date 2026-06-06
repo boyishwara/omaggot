@@ -6,6 +6,7 @@
 - Sensor Suhu & Kelembaban DHT21
 - 1x LED Merah
 - 1x LED Hijau
+- 1x Buzzer Aktif (5V / 3.3V)
 - Kabel USB
 - Breadboard
 - Kabel Jumper secukupnya
@@ -23,6 +24,7 @@
 1. Hubungkan DHT21 VCC ke 3V3, GND ke GND, dan Data ke GPIO 4.
 2. Hubungkan LED Hijau ke GPIO 18 (tambahkan resistor 220Ω).
 3. Hubungkan LED Merah ke GPIO 19 (tambahkan resistor 220Ω).
+4. Hubungkan Buzzer ke GPIO 21.
 
 ### Diagram Pemasangan (Wiring)
 
@@ -33,9 +35,11 @@ graph TD
         GND1[GND]
         GND2[GND]
         GND3[GND]
+        GND4[GND]
         D4[GPIO 4]
         D18[GPIO 18]
         D19[GPIO 19]
+        D21[GPIO 21]
     end
 
     subgraph DHT [DHT21 Sensor]
@@ -54,6 +58,11 @@ graph TD
         CATHODE_R[Cathode /-]
     end
 
+    subgraph BUZZER [Buzzer Aktif]
+        VCC_B[VCC / +]
+        GND_B[GND / -]
+    end
+
     3V3 -->|Kabel Merah| VCC_DHT
     D4 -->|Kabel Data| DATA_DHT
     GND1 -->|Kabel Hitam| GND_DHT
@@ -63,7 +72,32 @@ graph TD
 
     D19 -->|Resistor 220Ω| ANODE_R
     GND3 --> CATHODE_R
+
+    D21 -->|Kabel Positif| VCC_B
+    GND4 --> GND_B
 ```
+
+### Penjelasan Pemasangan Kabel (Wiring Guide)
+
+**1. Sensor Suhu & Kelembaban (DHT21)**
+- **VCC (Pin/Kabel Merah)**: Dihubungkan ke pin **3V3** pada ESP32. Pin ini memberikan daya 3.3 Volt yang dibutuhkan sensor DHT21 untuk beroperasi.
+- **GND (Pin/Kabel Hitam)**: Dihubungkan ke salah satu pin **GND (Ground)** pada ESP32. Ini berfungsi sebagai kutub negatif jalur kembalinya arus listrik.
+- **DATA (Pin/Kabel Data)**: Dihubungkan ke pin **GPIO 4 (D4)** pada ESP32. Jalur ini digunakan sensor untuk mengirimkan data pembacaan suhu dan kelembaban digital agar dapat dibaca oleh ESP32.
+
+**2. Indikator LED Hijau (Status Aman/Normal)**
+- **Anoda (Kaki Panjang / +)**: Dihubungkan ke pin **GPIO 18 (D18)** pada ESP32 **melalui sebuah Resistor 220Ω**. Resistor ini sangat penting karena berfungsi membatasi arus listrik dari pin ESP32 agar LED tidak terbakar/putus akibat arus yang terlalu besar.
+- **Katoda (Kaki Pendek / -)**: Dihubungkan ke salah satu pin **GND** pada ESP32.
+
+**3. Indikator LED Merah (Status Bahaya/Peringatan)**
+- **Anoda (Kaki Panjang / +)**: Dihubungkan ke pin **GPIO 19 (D19)** pada ESP32 **melalui sebuah Resistor 220Ω**, tujuannya sama seperti pada LED Hijau untuk mencegah kerusakan komponen.
+- **Katoda (Kaki Pendek / -)**: Dihubungkan ke salah satu pin **GND** pada ESP32.
+
+**4. Buzzer Aktif (Alarm Audio)**
+- **Kutub Positif (VCC / +)**: Dihubungkan ke pin **GPIO 21 (D21)** pada ESP32. Pin ini akan memberikan tegangan HIGH saat suhu/kelembaban memasuki batas bahaya untuk membunyikan alarm.
+- **Kutub Negatif (GND / -)**: Dihubungkan ke salah satu pin **GND** pada ESP32.
+
+> **Tips Merakit dengan Breadboard:**
+> Karena ESP32 hanya memiliki beberapa pin GND, Anda disarankan menggunakan **Breadboard**. Hubungkan satu pin GND dari ESP32 ke jalur memanjang (biasanya ditandai garis biru/-) di breadboard. Setelah itu, Anda bisa menghubungkan GND dari DHT21, Katoda LED Hijau, Katoda LED Merah, dan GND Buzzer ke jalur biru breadboard tersebut secara bersamaan.
 
 ## Konfigurasi
 
