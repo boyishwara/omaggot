@@ -208,8 +208,8 @@ stateDiagram-v2
 
 ### Phase 1: Database Setup (Supabase)
 1. Create a new Supabase project.
-2. Navigate to the SQL Editor and run the contents of `supabase/schema.sql` to generate the necessary tables and Row-Level Security (RLS) policies.
-3. The script automatically enables Realtime WebSockets for `sensor_readings` and `notifications`.
+2. In the root directory, open `setup-db.js` and update the connection string with your Supabase database URL and password.
+3. Run `node setup-db.js` to automatically generate the necessary tables, Row-Level Security (RLS) policies, and enable Realtime WebSockets.
 
 ### Phase 2: Environment Configuration
 1. Navigate to the `web` directory and copy `.env.example` to a new file named `.env.local`.
@@ -247,8 +247,8 @@ node mqtt-worker.js
 
 ### Phase 5: Hardware Flashing (ESP32)
 1. **Wiring:** Please refer to the [ESP32 Hardware Guide](esp32/README.md) for the GPIO pinout schema.
-2. Open the `esp32` directory in the Arduino IDE.
+2. Open the `esp32/omaggot_box` directory in the Arduino IDE.
 3. Install required libraries: `WiFiManager`, `PubSubClient`, `ArduinoJson`, `DHT sensor library`.
-4. Update `esp32/smart_maggot_box/config.h` with your HiveMQ connection details.
+4. Update `esp32/omaggot_box/config.h` with your HiveMQ connection details.
 5. Flash the code to your ESP32.
-6. On boot, the ESP32 will host a "MaggotBox-Setup" Wi-Fi network. Connect to it via your phone to input your local Wi-Fi credentials dynamically.
+6. On boot, the ESP32 will host a "OMaggot-Setup" Wi-Fi network. Connect to it via your phone to input your local Wi-Fi credentials dynamically.

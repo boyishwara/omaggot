@@ -65,12 +65,12 @@ void connectWiFi() {
   wifiManager.setConfigPortalTimeout(60);
   
   Serial.println("Opening setup window for 60 seconds...");
-  Serial.println("Connect to 'MaggotBox-Setup' NOW if you want to change WiFi.");
+  Serial.println("Connect to 'OMaggot-Setup' NOW if you want to change WiFi.");
   
   // This FORCES the portal to open every time it boots.
   // If you configure it within 60s, it saves and connects.
   // If you do nothing, it times out (returns false) and moves on.
-  if (!wifiManager.startConfigPortal("MaggotBox-Setup")) {
+  if (!wifiManager.startConfigPortal("OMaggot-Setup")) {
     Serial.println("Setup window closed. Attempting to connect to saved WiFi...");
     
     // Attempt to connect using the previously saved credentials
@@ -104,7 +104,7 @@ void connectMQTT() {
     if (mqtt.connect(clientId.c_str(), HIVEMQ_USERNAME, HIVEMQ_PASSWORD)) {
       Serial.println("connected");
       // Subscribe to status updates from the Node.js backend
-      mqtt.subscribe("maggotbox/sensor/status");
+      mqtt.subscribe("omaggot/sensor/status");
     } else {
       Serial.print("failed, rc=");
       Serial.print(mqtt.state());
@@ -120,7 +120,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     message += (char)payload[i];
   }
   
-  if (String(topic) == "maggotbox/sensor/status") {
+  if (String(topic) == "omaggot/sensor/status") {
     Serial.println("Received status: " + message);
     currentStatus = message;
   }
@@ -149,7 +149,7 @@ void readAndPublishData() {
   serializeJson(doc, jsonBuffer);
   
   // Publish to HiveMQ
-  if (mqtt.publish("maggotbox/sensor/data", jsonBuffer)) {
+  if (mqtt.publish("omaggot/sensor/data", jsonBuffer)) {
     Serial.println("Data published successfully via MQTT");
   } else {
     Serial.println("Failed to publish data via MQTT");

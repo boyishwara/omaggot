@@ -3,7 +3,7 @@ const mqtt = require('mqtt');
 require('dotenv').config({ path: '.env.local' });
 
 // HiveMQ Configuration
-const clientId = 'maggotbox_backend_' + Math.random().toString(16).substr(2, 8);
+const clientId = 'omaggot_backend_' + Math.random().toString(16).substr(2, 8);
 const host = process.env.HIVEMQ_HOST; // e.g., 'your-cluster.hivemq.cloud'
 const port = process.env.HIVEMQ_PORT || 8883;
 const username = process.env.HIVEMQ_USERNAME;
@@ -25,17 +25,17 @@ const client = mqtt.connect(connectUrl, {
 });
 
 const API_URL = process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/api/sensor` : 'http://localhost:3000/api/sensor';
-const API_KEY = process.env.ESP32_API_KEY || 'maggot-secret-key-2024';
+const API_KEY = process.env.ESP32_API_KEY || 'omaggot-secret-key-2024';
 
 client.on('connect', () => {
   console.log('✅ Connected to HiveMQ Cloud');
-  client.subscribe(['maggotbox/sensor/data'], () => {
-    console.log(`✅ Subscribed to topic: maggotbox/sensor/data`);
+  client.subscribe(['omaggot/sensor/data'], () => {
+    console.log(`✅ Subscribed to topic: omaggot/sensor/data`);
   });
 });
 
 client.on('message', async (topic, payload) => {
-  if (topic === 'maggotbox/sensor/data') {
+  if (topic === 'omaggot/sensor/data') {
     try {
       const data = JSON.parse(payload.toString());
       console.log('📥 Received data from ESP32:', data);
@@ -57,7 +57,7 @@ client.on('message', async (topic, payload) => {
         console.log(`📤 Publishing status update to ESP32: ${systemStatus}`);
         
         // Publish the determined status back to MQTT for the ESP32 to act on (LED/Buzzer)
-        client.publish('maggotbox/sensor/status', systemStatus, { qos: 1 });
+        client.publish('omaggot/sensor/status', systemStatus, { qos: 1 });
       } else {
         console.error('API Error:', result.error);
       }
