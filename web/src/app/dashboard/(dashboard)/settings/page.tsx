@@ -196,7 +196,7 @@ export default function SettingsPage() {
                   <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                     {activeCount} active
                   </span>
-                  <a href="https://t.me/smart_maggot_kel_7_bot" target="_blank" rel="noreferrer" className="text-xs text-white bg-[#0088cc] hover:bg-[#0077b5] px-3 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1.5">
+                  <a href="https://t.me/omaggot_bot" target="_blank" rel="noreferrer" className="text-xs text-white bg-[#0088cc] hover:bg-[#0077b5] px-3 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1.5">
                     <Send className="h-3 w-3" /> Bot
                   </a>
                   <button onClick={fetchAll} className="text-xs text-teal-600 hover:text-teal-700 font-semibold ml-2">Refresh</button>

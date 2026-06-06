@@ -27,7 +27,7 @@ export function Footer() {
             <a href="/login" className="text-sm hover:text-teal-400 transition-colors">
               Sign In
             </a>
-            <a href="https://t.me/smart_maggot_kel_7_bot" target="_blank" rel="noreferrer" className="text-sm hover:text-teal-400 transition-colors flex items-center gap-1.5">
+            <a href="https://t.me/omaggot_bot" target="_blank" rel="noreferrer" className="text-sm hover:text-teal-400 transition-colors flex items-center gap-1.5">
               <Send className="h-3.5 w-3.5" /> Telegram Bot
             </a>
           </div>
