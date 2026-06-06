@@ -18,7 +18,7 @@
 #endif
 
 // Timing Configuration
-#define SENSOR_INTERVAL 10000 // Waktu jeda pengiriman data (dalam milidetik)
+#define SENSOR_INTERVAL 5000 // Waktu jeda pengiriman data (dalam milidetik)
 
 // Hardware Pins
 #if defined(ESP8266)
