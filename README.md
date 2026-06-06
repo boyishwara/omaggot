@@ -40,7 +40,7 @@ graph LR
     User -->|Views Dashboard| NextJS
 ```
 
-*Explanation:* This diagram maps out the physical and logical boundaries of the system. In the **Local Environment**, the ESP32 microcontroller interfaces directly with DHT21 sensors to gather climate data, controlling physical actuators (LEDs & Buzzer) based on status changes. Because the ESP32 operates on limited power/compute, it streams data to a **Cloud Infrastructure** layer using the lightweight MQTT protocol via HiveMQ. A Node.js Worker bridges this MQTT stream into our Next.js API, which stores the data securely in Supabase. Finally, the **External** layer shows how end-users interact with the system—either by viewing the Next.js Dashboard or receiving automated webhook alerts pushed through the Telegram API.
+*Explanation:* This diagram maps out the physical and logical boundaries of the system. In the **Local Environment**, the ESP32 microcontroller interfaces directly with DHT21 sensors to gather climate data, controlling physical actuators (LEDs & Buzzer) based on status changes. Because the ESP32 operates on limited power/compute, it streams data to a **Cloud Infrastructure** layer using the lightweight MQTT protocol via HiveMQ. A Node.js Worker bridges this MQTT stream into our Next.js API, which stores the data securely in Supabase. Finally, the **External** layer shows how end-users interact with the system - either by viewing the Next.js Dashboard or receiving automated webhook alerts pushed through the Telegram API.
 
 ### 2. Data Flow (Sequence)
 This diagram illustrates the chronological step-by-step flow when a sensor reading occurs.
@@ -100,15 +100,23 @@ erDiagram
         TEXT condition
         DECIMAL threshold
         TEXT severity
+        TEXT message
         BOOLEAN is_active
+        BOOLEAN notify_email
+        BOOLEAN notify_sound
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
     
     notifications {
         BIGINT id PK
         BIGINT rule_id FK
-        BIGINT reading_id FK
+        TEXT rule_name
         TEXT severity
         TEXT message
+        BIGINT reading_id FK
+        DECIMAL temperature
+        DECIMAL humidity
         BOOLEAN is_read
         TIMESTAMPTZ created_at
     }
@@ -118,12 +126,18 @@ erDiagram
         TEXT name
         TEXT role
         BOOLEAN is_approved
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
     
     telegram_subscribers {
         UUID id PK
         TEXT chat_id
+        TEXT username
+        TEXT first_name
         BOOLEAN is_active
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
 ```
 
@@ -147,7 +161,7 @@ Building a reliable IoT system requires bridging the gap between embedded hardwa
 
 ### 3. MQTT (HiveMQ) + Node.js Worker Bridge
 - **What we needed:** A reliable way for the ESP32 to stream data 24/7 without draining battery or dropping packets due to HTTP overhead.
-- **Why we chose it:** MQTT is the industry standard for IoT—it is lightweight, requires minimal bandwidth, and maintains persistent connections. Since Next.js serverless functions cannot subscribe to MQTT continuously, we introduced a standalone **Node.js MQTT Worker**.
+- **Why we chose it:** MQTT is the industry standard for IoT - it is lightweight, requires minimal bandwidth, and maintains persistent connections. Since Next.js serverless functions cannot subscribe to MQTT continuously, we introduced a standalone **Node.js MQTT Worker**.
 - **The Benefit:** The Worker acts as a translator. It holds the persistent MQTT connection open, receives the ultra-lightweight payload from the ESP32, and fires a standard HTTP POST request to the Next.js API. This gives us the best of both worlds: efficient IoT hardware communication and scalable serverless backend APIs.
 
 ### 4. Telegram Bot over Custom Push Notifications
@@ -172,7 +186,7 @@ The system automatically calculates the Heat Index server-side using a modified 
 
 ## 👥 Pembagian Roles (Role Distribution & Access Control)
 
-To maintain strict security—especially concerning hardware simulation and alert rule modifications—the system implements a robust Role-Based Access Control (RBAC) mechanism. 
+To maintain strict security - especially concerning hardware simulation and alert rule modifications - the system implements a robust Role-Based Access Control (RBAC) mechanism. 
 
 There are three distinct roles in the system. Here is exactly what they can and cannot do:
 

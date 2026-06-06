@@ -18,13 +18,13 @@ const features = [
     icon: <BellRing className="h-6 w-6 text-amber-500" />,
     iconBg: 'bg-amber-50',
     title: 'Tiered Alert System',
-    description: 'Two severity levels — Warning and Danger — let you distinguish between "worth watching" and "act now". Alerts appear in the dashboard and are pushed via Telegram.',
+    description: 'Two severity levels  -  Warning and Danger  -  let you distinguish between "worth watching" and "act now". Alerts appear in the dashboard and are pushed via Telegram.',
   },
   {
     icon: <Cpu className="h-6 w-6 text-teal-600" />,
     iconBg: 'bg-teal-50',
     title: 'ESP32 + Cloud',
-    description: 'An ESP32 microcontroller reads the DHT sensor every 5 seconds and posts data to a Next.js API backed by Supabase — no polling needed, updates are real-time.',
+    description: 'An ESP32 microcontroller reads the DHT sensor every 5 seconds and posts data to a Next.js API backed by Supabase  -  no polling needed, updates are real-time.',
   },
 ];
 

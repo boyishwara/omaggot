@@ -1,4 +1,4 @@
-# planning.md — O'Maggot Box: Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT
+# planning.md  -  O'Maggot Box: Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT
 
 > **Untuk AI Coding Assistant**: Baca dokumen ini secara menyeluruh sebelum menulis satu baris kode pun.
 > Dokumen ini adalah sumber kebenaran tunggal (single source of truth) untuk arsitektur, konvensi, dan keputusan desain proyek ini.
@@ -7,7 +7,7 @@
 
 ## 1. Gambaran Proyek
 
-**Nama**: O'Maggot Box — Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT  
+**Nama**: O'Maggot Box  -  Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT  
 **Konteks**: Tugas Besar Mata Kuliah Semester 4  
 **Tujuan**: Memantau kondisi lingkungan budidaya maggot BSF (*Black Soldier Fly* / *Hermetia illucens*) secara real-time menggunakan sensor IoT, menampilkan data di web dashboard, dan mengirim peringatan otomatis ketika kondisi di luar ambang batas optimal.
 
@@ -16,10 +16,10 @@
 | Layer | Teknologi |
 |---|---|
 | Hardware | ESP32 + DHT22 + Buzzer 3V + LED Hijau/Merah + Resistor 220Ω |
-| Backend + Frontend | Next.js 14 (App Router) — monorepo satu project |
+| Backend + Frontend | Next.js 14 (App Router)  -  monorepo satu project |
 | Database | Supabase (PostgreSQL + Realtime + Auth) |
 | Styling | Tailwind CSS |
-| Deployment | Local (localhost:3000) — Supabase tetap cloud |
+| Deployment | Local (localhost:3000)  -  Supabase tetap cloud |
 
 ---
 
@@ -335,7 +335,7 @@ INSERT INTO system_settings (key, value) VALUES
 
 ---
 
-## 7. Fitur Lengkap — Admin Panel
+## 7. Fitur Lengkap  -  Admin Panel
 
 ### 7.1 Dashboard Real-time
 
@@ -393,7 +393,7 @@ INSERT INTO system_settings (key, value) VALUES
 - **Browser push notification** (jika izin diberikan)
 - Toast notification muncul real-time saat tab aktif
 
-### 7.7 Fitur Tambahan (Critical Thinking — yang belum ter-list)
+### 7.7 Fitur Tambahan (Critical Thinking  -  yang belum ter-list)
 
 Setelah menganalisis sistem monitoring industri serupa, berikut fitur yang **wajib** ditambahkan agar sistem komprehensif:
 
@@ -406,16 +406,16 @@ Setelah menganalisis sistem monitoring industri serupa, berikut fitur yang **waj
 | **Status "Acknowledged"** pada notifikasi | Admin bisa tandai "sudah ditangani" untuk membedakan dari yang belum direspons. |
 | **API key untuk ESP32** | Tanpa auth, siapapun bisa POST data palsu ke endpoint. Gunakan header `x-api-key`. |
 | **Data retention info** | Tampilkan berapa banyak data tersimpan, sejak kapan, agar admin tahu perlu clear atau tidak. |
-| **Kondisi ideal indicator** | Tampilkan apakah kondisi saat ini "ideal untuk fase larva instar 1/2/3" — value add edukasi. |
+| **Kondisi ideal indicator** | Tampilkan apakah kondisi saat ini "ideal untuk fase larva instar 1/2/3"  -  value add edukasi. |
 
 ---
 
 ## 8. Desain Visual (dari DESIGN_md.md)
 
-### Color Palette — CSS Variables
+### Color Palette  -  CSS Variables
 
 ```css
-/* globals.css — salin persis ini */
+/* globals.css  -  salin persis ini */
 :root {
   --primary:        #cc785c;
   --primary-active: #a9583e;
@@ -452,8 +452,8 @@ Setelah menganalisis sistem monitoring industri serupa, berikut fitur yang **waj
 
 ### Prinsip Visual Utama
 
-1. Canvas selalu **cream** (`#faf9f5`) — tidak pernah putih murni
-2. Coral (`#cc785c`) hanya untuk CTA primer dan callout cards — langka dan impactful
+1. Canvas selalu **cream** (`#faf9f5`)  -  tidak pernah putih murni
+2. Coral (`#cc785c`) hanya untuk CTA primer dan callout cards  -  langka dan impactful
 3. Dark navy (`#181715`) untuk product mockup cards dan footer
 4. Alternasi ritme: cream → cream-card → dark → cream → coral → dark-footer
 5. Serif untuk semua heading display, sans untuk semua body teks
@@ -531,7 +531,7 @@ export interface Notification {
 
 ### Aturan Kode
 
-1. Setiap file **maksimal 400 baris** — pecah jika lebih
+1. Setiap file **maksimal 400 baris**  -  pecah jika lebih
 2. Setiap fungsi wajib memiliki JSDoc comment minimal satu baris
 3. Semua API route wajib handle error dengan response yang konsisten:
 
@@ -543,7 +543,7 @@ export interface Notification {
    ```
 
 4. Gunakan Supabase **server client** untuk API routes, **browser client** untuk realtime di frontend
-5. Jangan hardcode nilai threshold — selalu ambil dari tabel `warning_rules`
+5. Jangan hardcode nilai threshold  -  selalu ambil dari tabel `warning_rules`
 
 ---
 
@@ -742,7 +742,7 @@ Body: `{ "from": "2024-01-01", "to": "2024-01-15", "also_notifications": true }`
 - [ ] GET /api/export
 - [ ] DELETE /api/data/clear
 
-### Phase 3: Frontend — Landing Page
+### Phase 3: Frontend  -  Landing Page
 
 - [ ] Navbar
 - [ ] Hero section
@@ -750,7 +750,7 @@ Body: `{ "from": "2024-01-01", "to": "2024-01-15", "also_notifications": true }`
 - [ ] Stats section
 - [ ] Footer
 
-### Phase 4: Frontend — Admin
+### Phase 4: Frontend  -  Admin
 
 - [ ] Login page + auth dengan Supabase
 - [ ] Admin layout dengan sidebar
@@ -781,14 +781,14 @@ Body: `{ "from": "2024-01-01", "to": "2024-01-15", "also_notifications": true }`
 
 ## 15. Hal yang Harus DIHINDARI
 
-1. **Jangan** gunakan `useEffect` untuk polling — gunakan Supabase Realtime subscription
-2. **Jangan** hardcode threshold di frontend — ambil dari `warning_rules` tabel
+1. **Jangan** gunakan `useEffect` untuk polling  -  gunakan Supabase Realtime subscription
+2. **Jangan** hardcode threshold di frontend  -  ambil dari `warning_rules` tabel
 3. **Jangan** simpan `SUPABASE_SERVICE_ROLE_KEY` di client-side code
-4. **Jangan** lupa handle ESP32 disconnect — implementasi heartbeat check
+4. **Jangan** lupa handle ESP32 disconnect  -  implementasi heartbeat check
 5. **Jangan** gunakan warna yang tidak ada di CSS variables
-6. **Jangan** buat komponen > 400 baris — pecah menjadi komponen lebih kecil
+6. **Jangan** buat komponen > 400 baris  -  pecah menjadi komponen lebih kecil
 7. **Jangan** lupa validasi `api_key` di setiap request dari ESP32
-8. **Jangan** gunakan `any` TypeScript — selalu definisikan type dengan benar
+8. **Jangan** gunakan `any` TypeScript  -  selalu definisikan type dengan benar
 
 ---
 
@@ -797,7 +797,7 @@ Body: `{ "from": "2024-01-01", "to": "2024-01-15", "also_notifications": true }`
 - [Supabase Realtime Docs](https://supabase.com/docs/guides/realtime)
 - [Next.js App Router Docs](https://nextjs.org/docs/app)
 - [DHT22 Datasheet](https://www.sparkfun.com/datasheets/Sensors/Temperature/DHT22.pdf)
-- [BSF Optimal Conditions Research](https://doi.org/10.1016/j.wasman.2019.03.045) — optimal temp 27-32°C, humidity 65-75%
+- [BSF Optimal Conditions Research](https://doi.org/10.1016/j.wasman.2019.03.045)  -  optimal temp 27-32°C, humidity 65-75%
 - [ESP32 Arduino Core](https://github.com/espressif/arduino-esp32)
 
 ---

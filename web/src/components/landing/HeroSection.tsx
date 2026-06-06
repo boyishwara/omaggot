@@ -16,7 +16,7 @@ export function HeroSection() {
       <div className="absolute bottom-[-8%] right-[-8%] w-[35%] h-[35%] bg-blue-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10 w-full">
-        {/* Left — copy */}
+        {/* Left  -  copy */}
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
           <div className="inline-flex items-center space-x-2 bg-teal-50 border border-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
             <span className="relative flex h-2 w-2">
@@ -67,7 +67,7 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* Right — live data mock-up */}
+        {/* Right  -  live data mock-up */}
         <div className="animate-in fade-in slide-in-from-right-8 duration-1000 delay-200">
           <div className="bg-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-800 hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-blue-500/5 rounded-2xl pointer-events-none" />
@@ -97,9 +97,9 @@ export function HeroSection() {
             </div>
             {/* Recent alert feed */}
             <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 font-mono text-xs text-slate-400 space-y-2">
-              <p className="flex items-center gap-2"><span className="text-green-400">✓</span>ESP32 connected — reading sensors</p>
+              <p className="flex items-center gap-2"><span className="text-green-400">✓</span>ESP32 connected  -  reading sensors</p>
               <p className="flex items-center gap-2"><span className="text-teal-400">→</span>Payload sent to /api/sensor</p>
-              <p className="flex items-center gap-2"><span className="text-green-400">✓</span>No active alerts — all within range</p>
+              <p className="flex items-center gap-2"><span className="text-green-400">✓</span>No active alerts  -  all within range</p>
             </div>
           </div>
         </div>

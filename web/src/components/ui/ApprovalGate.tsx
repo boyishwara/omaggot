@@ -13,7 +13,7 @@ interface ApprovalGateProps {
 /**
  * Wraps any child element and, when `allowed` is false, overlays it with a
  * semi-transparent lock state and a hover tooltip. The child remains visible
- * but is visually disabled — industry-standard pattern for pending permissions.
+ * but is visually disabled  -  industry-standard pattern for pending permissions.
  */
 export function ApprovalGate({
   allowed,
