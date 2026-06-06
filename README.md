@@ -273,8 +273,8 @@ flowchart LR
 
     Superadmin --> UC_UserMgmt
 
-    classDef actor fill:#f9f9f9,stroke:#333,stroke-width:2px;
-    classDef usecase fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef actor fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#000000;
+    classDef usecase fill:#e1f5fe,stroke:#0288d1,stroke-width:1px,color:#000000;
     class User,Admin,Superadmin actor;
     class UC_Auth,UC_Dash,UC_Rep,UC_Exp,UC_ViewRule,UC_MgmtRule,UC_TestNotif,UC_Simulate,UC_DelData,UC_Subscribers,UC_UserMgmt,UC_Approve usecase;
 ```
