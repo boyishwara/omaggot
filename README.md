@@ -188,17 +188,21 @@ The system features a complete Role-Based Access Control implementation:
 - **Superadmin:** Full access to everything, plus a dedicated User Management tab to approve or reject pending Admins.
 
 > [!IMPORTANT]  
-> **Creating the first Superadmin:**  
-> For security, you cannot register directly as a Superadmin via the UI. You must register normally, then promote your account via the database:
+> **Creating & Managing Superadmins:**  
+> For strict security—and as an industry standard practice—users cannot select the Superadmin role during registration. Hardcoding Superadmin registration endpoints or secret UI paths is highly vulnerable to discovery and exploitation. By requiring direct database access (which only the system owner has) to assign the initial Superadmin role, we guarantee that privilege escalation vulnerabilities are fundamentally impossible at the application level.
+> 
+> You must register normally, then promote your account via the database:
 > 1. Register an account at `http://localhost:3000/register` (select either User or Admin).
-> 2. Open the Supabase Dashboard SQL Editor.
+> 2. Open the [Supabase Dashboard SQL Editor](https://app.supabase.com/).
 > 3. Run the following query, replacing the email with yours:
 >    ```sql
 >    UPDATE user_profiles 
 >    SET role = 'superadmin', is_approved = true 
 >    WHERE id = (SELECT id FROM auth.users WHERE email = 'your@email.com');
 >    ```
-> 4. Refresh your dashboard to see the new Superadmin privileges and the User Management tab.
+> 4. Refresh your dashboard to see the new Superadmin privileges (indicated by the green Active badge) and the new User Management tab.
+>
+> Once the first Superadmin is established, they can securely manage and approve all subsequent Admins through the protected UI dashboard.
 
 ## Step-by-Step Setup Guide
 
