@@ -64,14 +64,6 @@ export default function GuidePage() {
                   <strong className="text-slate-800 block mb-1">Humidity (%)</strong>
                   Optimal range is 60% - 70%. High humidity risks mold, while low humidity can dehydrate the larvae.
                 </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <strong className="text-slate-800 block mb-1">Ammonia (NH3)</strong>
-                  High levels indicate poor ventilation and decomposition, which is toxic. Keep this as low as possible.
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
-                  <strong className="text-slate-800 block mb-1">Light Level (Lux)</strong>
-                  Black Soldier Flies prefer specific light levels for mating. Monitor this if you are managing adult flies.
-                </div>
               </div>
             </CardContent>
           </Card>
