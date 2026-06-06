@@ -8,6 +8,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { LiveAlerts } from '@/components/dashboard/LiveAlerts';
 import { HistoricalChart } from '@/components/dashboard/HistoricalChart';
 import type { SensorReading } from '@/types';
+import { ApprovalGate } from '@/components/ui/ApprovalGate';
 
 export default function DashboardClient({
   initialReadings,
@@ -26,8 +27,17 @@ export default function DashboardClient({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [simulationStatus, setSimulationStatus] = useState(initialSimulationStatus);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
+    // Fetch user profile for permission checks
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        (supabase as any).from('user_profiles').select('*').eq('id', user.id).single()
+          .then(({ data }: { data: any }) => setUserProfile(data));
+      }
+    });
+
     const dataSub = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sensor_readings' }, (payload) => {
@@ -101,20 +111,27 @@ export default function DashboardClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Simulation selector */}
-          <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">
-            <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Test:</span>
-            <select
-              value={simulationStatus}
-              onChange={(e) => handleSimulate(e.target.value)}
-              disabled={isSimulating}
-              className="text-sm bg-white border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-teal-500 outline-none"
+          {/* Simulation selector — only for approved admins and superadmins */}
+          {userProfile && (userProfile.role === 'user') ? null : (
+            <ApprovalGate
+              allowed={!userProfile || (userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+              message="Needs Superadmin approval to use test simulation."
             >
-              <option value="NONE">Normal</option>
-              <option value="WARNING">Warning</option>
-              <option value="DANGER">Danger</option>
-            </select>
-          </div>
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">
+                <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Test:</span>
+                <select
+                  value={simulationStatus}
+                  onChange={(e) => handleSimulate(e.target.value)}
+                  disabled={isSimulating}
+                  className="text-sm bg-white border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-teal-500 outline-none"
+                >
+                  <option value="NONE">Normal</option>
+                  <option value="WARNING">Warning</option>
+                  <option value="DANGER">Danger</option>
+                </select>
+              </div>
+            </ApprovalGate>
+          )}
 
           {/* Online indicator */}
           <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">

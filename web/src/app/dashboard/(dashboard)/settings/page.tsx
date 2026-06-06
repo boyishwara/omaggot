@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Send, Activity, Server, Smartphone, Users, BellRing, Database, Wifi, UserX } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { BlockedPage } from '@/components/ui/BlockedPage';
+import { ApprovalGate } from '@/components/ui/ApprovalGate';
+
 
 // ─── Subscriber row ───────────────────────────────────────────────────────
 function SubscriberRow({ sub, onUnsubscribe }: { sub: any; onUnsubscribe: (id: string) => void }) {
@@ -114,7 +116,11 @@ export default function SettingsPage() {
 
   const activeCount = subscribers.filter((s) => s.is_active).length;
 
-  if (userProfile && (userProfile.role === 'user' || (userProfile.role === 'admin' && !userProfile.is_approved))) {
+  const isApprovedAdmin = userProfile && ((userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin');
+  const isPendingAdmin = userProfile && userProfile.role === 'admin' && !userProfile.is_approved;
+
+  // Fully blocked for normal users
+  if (userProfile && userProfile.role === 'user') {
     return <BlockedPage title="Settings Blocked" message="You need approved admin privileges to access settings." />;
   }
 
@@ -157,15 +163,20 @@ export default function SettingsPage() {
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-sm text-slate-600 leading-relaxed">
                 Send a simulated <span className="font-semibold text-slate-800">CRITICAL</span> alert to verify your notification pipeline end-to-end - this will send a real Telegram message to all active subscribers.
               </div>
-              <Button
-                variant="secondary"
-                onClick={handleTestNotification}
-                disabled={testStatus === 'loading'}
-                className="w-full flex items-center justify-center gap-2"
+              <ApprovalGate
+                allowed={!!isApprovedAdmin}
+                message="Needs Superadmin approval to trigger test notifications."
               >
-                <Send className="h-4 w-4 text-teal-600" />
-                {testStatus === 'loading' ? 'Sending…' : testStatus === 'success' ? '✅ Sent Successfully!' : 'Trigger Test Notification'}
-              </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleTestNotification}
+                  disabled={testStatus === 'loading'}
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <Send className="h-4 w-4 text-teal-600" />
+                  {testStatus === 'loading' ? 'Sending…' : testStatus === 'success' ? '✅ Sent Successfully!' : 'Trigger Test Notification'}
+                </Button>
+              </ApprovalGate>
               {testStatus === 'error' && (
                 <p className="text-red-500 text-xs font-medium text-center">Failed. Check API logs for details.</p>
               )}

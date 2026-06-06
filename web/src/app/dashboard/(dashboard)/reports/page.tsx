@@ -9,6 +9,7 @@ import {
   Droplets, BellRing, ChevronDown, X, AlertTriangle, BarChart3,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { ApprovalGate } from '@/components/ui/ApprovalGate';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 type ExportFormat = 'csv' | 'tsv' | 'xlsx' | 'json';
@@ -333,10 +334,15 @@ export default function ReportsPage() {
           <p className="text-slate-500 mt-0.5 text-xs sm:text-sm">Analyse, export, and manage historical sensor data</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
-            <Button variant="secondary" onClick={() => setDeleteOpen(true)} className="flex items-center gap-2 text-sm text-red-600 border-red-200 hover:bg-red-50">
-              <Trash2 className="h-4 w-4" />Delete
-            </Button>
+          {userProfile && userProfile.role !== 'user' && (
+            <ApprovalGate
+              allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+              message="Needs Superadmin approval to delete data."
+            >
+              <Button variant="secondary" onClick={() => setDeleteOpen(true)} className="flex items-center gap-2 text-sm text-red-600 border-red-200 hover:bg-red-50">
+                <Trash2 className="h-4 w-4" />Delete
+              </Button>
+            </ApprovalGate>
           )}
           <Button variant="primary" onClick={() => setExportOpen(true)} className="flex items-center gap-2 text-sm">
             <Download className="h-4 w-4" />Export

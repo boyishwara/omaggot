@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, Trash2, ShieldAlert } from 'lucide-react';
+import { User, Mail, Lock, Trash2, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -95,9 +95,53 @@ export default function ProfilePage() {
 
   if (!authUser) return null;
 
+  const isApproved = profile?.is_approved ?? true;
+  const role: string = profile?.role ?? 'user';
+  const isPendingAdmin = role === 'admin' && !isApproved;
+
   return (
     <div className="p-4 sm:p-6 lg:p-10 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
+      {/* Account Status Card */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+        <div className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center gap-4 ${
+          isPendingAdmin
+            ? 'bg-amber-50 border-amber-200'
+            : 'bg-teal-50 border-teal-200'
+        }`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${
+            isPendingAdmin ? 'bg-amber-100' : 'bg-teal-100'
+          }`}>
+            {isPendingAdmin
+              ? <Clock className="h-5 w-5 text-amber-600" />
+              : <CheckCircle2 className="h-5 w-5 text-teal-600" />
+            }
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`text-sm font-bold capitalize ${
+                isPendingAdmin ? 'text-amber-800' : 'text-teal-800'
+              }`}>
+                {role}
+              </span>
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                isPendingAdmin
+                  ? 'bg-amber-100 text-amber-700 border-amber-300'
+                  : 'bg-teal-100 text-teal-700 border-teal-300'
+              }`}>
+                {isPendingAdmin ? 'Pending Approval' : 'Active'}
+              </span>
+            </div>
+            <p className={`text-xs mt-0.5 ${
+              isPendingAdmin ? 'text-amber-700' : 'text-teal-700'
+            }`}>
+              {isPendingAdmin
+                ? 'Your admin account is awaiting approval from a Superadmin. You can view the dashboard but editing features are locked until approved.'
+                : `Your ${role} account is active and fully operational.`
+              }
+            </p>
+          </div>
+        </div>
+      </motion.div>
       <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/60 shadow-sm">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">My Profile</h1>
         <p className="text-slate-500 mt-1 text-sm">Manage your personal information and account settings</p>

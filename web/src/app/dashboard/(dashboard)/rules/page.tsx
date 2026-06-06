@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Plus, Trash2, X, Edit2, ShieldAlert } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { WarningRule } from '@/types';
+import { ApprovalGate } from '@/components/ui/ApprovalGate';
 
 // ──────────────────── helpers ────────────────────
 const EMPTY_FORM = {
@@ -165,10 +166,16 @@ export default function RulesPage() {
             <p className="text-slate-500 text-sm mt-0.5">Configure alert thresholds for monitoring</p>
           </div>
         </div>
-        {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
-          <Button variant="primary" onClick={() => { setEditingRule(null); setModalOpen(true); }} className="flex items-center gap-2 shrink-0">
-            <Plus className="h-4 w-4" /><span>Create Rule</span>
-          </Button>
+        {/* Hidden from normal users; greyed-out for pending admins */}
+        {userProfile && userProfile.role !== 'user' && (
+          <ApprovalGate
+            allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+            message="Needs Superadmin approval to create rules."
+          >
+            <Button variant="primary" onClick={() => { setEditingRule(null); setModalOpen(true); }} className="flex items-center gap-2 shrink-0">
+              <Plus className="h-4 w-4" /><span>Create Rule</span>
+            </Button>
+          </ApprovalGate>
         )}
       </motion.div>
 
@@ -185,7 +192,7 @@ export default function RulesPage() {
                     {['Status', 'Rule Name', 'Condition', 'Severity'].map((h) => (
                       <th key={h} className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500">{h}</th>
                     ))}
-                    {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
+                    {userProfile && userProfile.role !== 'user' && (
                       <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                     )}
                   </tr>
@@ -199,13 +206,17 @@ export default function RulesPage() {
                     rules.map((rule) => (
                       <motion.tr key={rule.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hover:bg-slate-50 transition-colors group">
                         <td className="px-5 py-4">
-                          <button 
-                            onClick={() => toggleRule(rule)} 
-                            disabled={!userProfile || (userProfile.role !== 'superadmin' && !(userProfile.role === 'admin' && userProfile.is_approved))}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 ${rule.is_active ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                          <ApprovalGate
+                            allowed={!!userProfile && ((userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin')}
+                            message="Needs Superadmin approval to toggle rules."
                           >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${rule.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
-                          </button>
+                            <button
+                              onClick={() => toggleRule(rule)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:ring-offset-2 ${rule.is_active ? 'bg-teal-500' : 'bg-slate-300'}`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${rule.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                          </ApprovalGate>
                         </td>
                         <td className="px-5 py-4">
                           <div className="font-semibold text-slate-900 text-sm">{rule.name}</div>
@@ -217,11 +228,21 @@ export default function RulesPage() {
                           </code>
                         </td>
                         <td className="px-5 py-4"><Badge status={rule.severity} variant="pill">{rule.severity}</Badge></td>
-                        {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
+                        {userProfile && userProfile.role !== 'user' && (
                           <td className="px-5 py-4 text-right">
                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => { setEditingRule(rule); setModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"><Edit2 className="h-4 w-4" /></button>
-                              <button onClick={() => deleteRule(rule.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                              <ApprovalGate
+                                allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+                                message="Needs Superadmin approval."
+                              >
+                                <button onClick={() => { setEditingRule(rule); setModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"><Edit2 className="h-4 w-4" /></button>
+                              </ApprovalGate>
+                              <ApprovalGate
+                                allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+                                message="Needs Superadmin approval."
+                              >
+                                <button onClick={() => deleteRule(rule.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                              </ApprovalGate>
                             </div>
                           </td>
                         )}
@@ -253,17 +274,31 @@ export default function RulesPage() {
                         {rule.parameter} {rule.condition === 'gt' ? '>' : '<'} {rule.threshold}
                       </code>
                       <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => toggleRule(rule)} 
-                          disabled={!userProfile || (userProfile.role !== 'superadmin' && !(userProfile.role === 'admin' && userProfile.is_approved))}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${rule.is_active ? 'bg-teal-500' : 'bg-slate-300'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        <ApprovalGate
+                          allowed={!!userProfile && ((userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin')}
+                          message="Needs Superadmin approval to toggle rules."
                         >
-                          <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${rule.is_active ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                        </button>
-                        {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
+                          <button
+                            onClick={() => toggleRule(rule)}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${rule.is_active ? 'bg-teal-500' : 'bg-slate-300'}`}
+                          >
+                            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${rule.is_active ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                          </button>
+                        </ApprovalGate>
+                        {userProfile && userProfile.role !== 'user' && (
                           <>
-                            <button onClick={() => { setEditingRule(rule); setModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"><Edit2 className="h-4 w-4" /></button>
-                            <button onClick={() => deleteRule(rule.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                            <ApprovalGate
+                              allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+                              message="Needs Superadmin approval."
+                            >
+                              <button onClick={() => { setEditingRule(rule); setModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"><Edit2 className="h-4 w-4" /></button>
+                            </ApprovalGate>
+                            <ApprovalGate
+                              allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+                              message="Needs Superadmin approval."
+                            >
+                              <button onClick={() => deleteRule(rule.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                            </ApprovalGate>
                           </>
                         )}
                       </div>
