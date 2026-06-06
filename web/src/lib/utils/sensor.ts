@@ -38,7 +38,7 @@ export function calculateHeatIndex(temperatureC: number, humidityPercent: number
 export function determineStatus(temperature: number, humidity: number, rules: any[]): { status: SensorStatus, severityRules: any[] } {
   let finalStatus: SensorStatus = 'NORMAL';
   const triggeredRules = [];
-  let severityLevel = 0; // 0: NORMAL, 1: WARNING, 2: DANGER, 3: CRITICAL
+  let severityLevel = 0; // 0: NORMAL, 1: WARNING, 2: DANGER
 
   for (const rule of rules) {
     if (!rule.is_active) continue;
@@ -58,15 +58,14 @@ export function determineStatus(temperature: number, humidity: number, rules: an
 
     if (isTriggered) {
       triggeredRules.push(rule);
-      const level = rule.severity === 'CRITICAL' ? 3 : (rule.severity === 'DANGER' ? 2 : 1);
+      const level = rule.severity === 'DANGER' ? 2 : 1;
       if (level > severityLevel) {
         severityLevel = level;
       }
     }
   }
 
-  if (severityLevel === 3) finalStatus = 'CRITICAL';
-  else if (severityLevel === 2) finalStatus = 'DANGER';
+  if (severityLevel === 2) finalStatus = 'DANGER';
   else if (severityLevel === 1) finalStatus = 'WARNING';
 
   return { status: finalStatus, severityRules: triggeredRules };

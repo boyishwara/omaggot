@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'No active subscribers' });
     }
 
-    const emoji = payload.severity === 'CRITICAL' ? '🚨' : payload.severity === 'DANGER' ? '🔥' : '⚠️';
+    const emoji = payload.severity === 'DANGER' ? '🚨' : '⚠️';
     const text =
       `${emoji} *Smart Maggot Box Alert*\n\n` +
       `*Severity:* ${payload.severity}\n` +

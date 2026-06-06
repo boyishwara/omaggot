@@ -1,7 +1,7 @@
-export type SensorStatus = 'NORMAL' | 'WARNING' | 'DANGER' | 'CRITICAL';
+export type SensorStatus = 'NORMAL' | 'WARNING' | 'DANGER';
 export type RuleCondition = 'gt' | 'lt' | 'gte' | 'lte';
 export type RuleParameter = 'temperature' | 'humidity' | 'heat_index';
-export type RuleSeverity = 'WARNING' | 'DANGER' | 'CRITICAL';
+export type RuleSeverity = 'WARNING' | 'DANGER';
 
 export interface SensorReading {
   id: number;

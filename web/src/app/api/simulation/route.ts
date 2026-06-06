@@ -4,9 +4,9 @@ import { createAdminClient } from '@/lib/supabase/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { status } = body; // 'NORMAL', 'WARNING', 'DANGER', 'CRITICAL', 'NONE'
+    const { status } = body; // 'NORMAL', 'WARNING', 'DANGER', 'NONE'
 
-    if (!['NORMAL', 'WARNING', 'DANGER', 'CRITICAL', 'NONE'].includes(status)) {
+    if (!['NORMAL', 'WARNING', 'DANGER', 'NONE'].includes(status)) {
       return NextResponse.json({ success: false, error: 'Invalid status' }, { status: 400 });
     }
 

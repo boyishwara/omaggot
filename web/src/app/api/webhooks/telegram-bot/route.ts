@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       replyMessage = `👋 *Welcome to Smart Maggot Box Bot!*\n\n` +
                      `I can help you monitor the real-time conditions of your BSF maggot cultivation box.\n\n` +
                      `*Available Commands:*\n` +
-                     `👉 /subscribe - Start receiving Danger and Critical alerts automatically\n` +
+                     `👉 /subscribe - Start receiving Danger alerts automatically\n` +
                      `👉 /unsubscribe - Stop receiving automatic alerts\n` +
                      `👉 /status - Check the current temperature and humidity immediately\n\n` +
                      `Use /status to get an instant reading right now!`;
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         );
 
       if (error) throw error;
-      replyMessage = '✅ *Successfully subscribed!* You will now receive automatic alerts when conditions become critical.\n\nSend /unsubscribe at any time to stop alerts.';
+      replyMessage = '✅ *Successfully subscribed!* You will now receive automatic alerts when conditions become dangerous.\n\nSend /unsubscribe at any time to stop alerts.';
     
     } else if (command === '/unsubscribe') {
       // Deactivate subscriber

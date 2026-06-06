@@ -3,29 +3,40 @@ import { Logo } from '@/components/ui/Logo';
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-400 py-16 px-6 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-        <div className="flex items-center space-x-2 text-slate-200 mb-6 group cursor-pointer">
-          <div className="bg-slate-800 p-2 rounded-lg group-hover:bg-teal-500/20 transition-colors">
-            <Logo className="h-6 w-6 text-teal-500" />
+    <footer className="bg-slate-900 text-slate-400 py-12 px-6 border-t border-slate-800">
+      <div className="max-w-7xl mx-auto">
+        {/* Top row */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-8 pb-10 border-b border-slate-800">
+          {/* Brand */}
+          <div className="flex flex-col items-center sm:items-start gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="bg-slate-800 p-2 rounded-lg">
+                <Logo className="h-5 w-5 text-teal-500" />
+              </div>
+              <span className="font-serif text-lg text-slate-200 tracking-tight">Smart Maggot Box</span>
+            </div>
+            <p className="text-sm max-w-xs leading-relaxed text-center sm:text-left">
+              IoT environmental monitoring for Black Soldier Fly cultivation.
+              Built with Next.js, Supabase, and ESP32.
+            </p>
           </div>
-          <span className="font-serif text-2xl tracking-tight">Smart Maggot Box</span>
+
+          {/* Links */}
+          <div className="flex flex-col items-center sm:items-end gap-2">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-1">Links</p>
+            <a href="/login" className="text-sm hover:text-teal-400 transition-colors">
+              Sign In
+            </a>
+            <a href="https://github.com/boyishwara" target="_blank" rel="noreferrer" className="text-sm hover:text-teal-400 transition-colors">
+              GitHub
+            </a>
+          </div>
         </div>
-        <p className="text-body-md max-w-md mb-8 leading-relaxed">
-          Advanced IoT monitoring system for optimal Black Soldier Fly maggot cultivation. Built with Next.js, Supabase, and ESP32.
-        </p>
-        
-        <div className="flex space-x-6 text-sm font-medium">
-          <a href="/login" className="hover:text-teal-400 transition-colors">Admin Login</a>
-          <a href="https://github.com/boyishwara" target="_blank" rel="noreferrer" className="hover:text-teal-400 transition-colors">GitHub</a>
-        </div>
-      </div>
-      
-      <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-sm">
-        <p>© 2026 Smart Maggot Box. All rights reserved.</p>
-        <div className="flex space-x-6 mt-4 md:mt-0">
-          <span className="opacity-50 hover:opacity-100 transition-opacity cursor-not-allowed">Privacy Policy</span>
-          <span className="opacity-50 hover:opacity-100 transition-opacity cursor-not-allowed">Terms of Service</span>
+
+        {/* Bottom row */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <p>© 2026 Smart Maggot Box. All rights reserved.</p>
+          <p>Monitoring Temperature &amp; Humidity for optimal BSF growth.</p>
         </div>
       </div>
     </footer>

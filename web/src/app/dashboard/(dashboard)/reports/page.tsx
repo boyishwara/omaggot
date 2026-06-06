@@ -27,7 +27,6 @@ interface Stats {
   normalCount: number;
   warningCount: number;
   dangerCount: number;
-  criticalCount: number;
   peakTempTime: string;
   peakHumTime: string;
 }
@@ -187,7 +186,7 @@ function DeleteModal({
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-600">Delete readings with status</label>
                   <div className="flex gap-2 flex-wrap">
-                    {['NORMAL', 'WARNING', 'DANGER', 'CRITICAL'].map((s) => (
+                    {['NORMAL', 'WARNING', 'DANGER'].map((s) => (
                       <button key={s} onClick={() => setDeleteStatus(s)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${deleteStatus === s ? 'bg-purple-50 border-purple-300 text-purple-700' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>{s}</button>
                     ))}
                   </div>
@@ -284,7 +283,6 @@ export default function ReportsPage() {
         normalCount: bySeverity('NORMAL'),
         warningCount: bySeverity('WARNING'),
         dangerCount: bySeverity('DANGER'),
-        criticalCount: bySeverity('CRITICAL'),
         peakTempTime: new Date(peakTempReading.recorded_at).toLocaleString(),
         peakHumTime: new Date(peakHumReading.recorded_at).toLocaleString(),
       });
@@ -421,7 +419,6 @@ export default function ReportsPage() {
                   <StatusBar label="Normal" count={stats.normalCount} total={stats.count} color="bg-teal-500" />
                   <StatusBar label="Warning" count={stats.warningCount} total={stats.count} color="bg-amber-400" />
                   <StatusBar label="Danger" count={stats.dangerCount} total={stats.count} color="bg-orange-500" />
-                  <StatusBar label="Critical" count={stats.criticalCount} total={stats.count} color="bg-red-500" />
                 </div>
               </div>
             )}

@@ -4,13 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BellRing } from 'lucide-react';
 
 const SEVERITY_CONFIG: Record<string, { dot: string; label: string; msgColor: string; badgeBg: string; badgeText: string }> = {
-  CRITICAL: {
-    dot: 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.9)]',
-    label: 'text-red-300 font-bold',
-    msgColor: 'text-slate-100',
-    badgeBg: 'bg-red-500/20 border-red-500/30',
-    badgeText: 'text-red-300',
-  },
   DANGER: {
     dot: 'bg-orange-400 animate-pulse shadow-[0_0_8px_rgba(251,146,60,0.8)]',
     label: 'text-orange-300 font-semibold',
