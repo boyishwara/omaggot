@@ -15,7 +15,7 @@ This diagram outlines the physical and cloud boundaries of the system.
 ```mermaid
 graph LR
     subgraph "Local Environment"
-        DHT[DHT22 Sensor] -->|Reads| ESP32[ESP32 Microcontroller]
+        DHT[DHT21 Sensor] -->|Reads| ESP32[ESP32 Microcontroller]
         ESP32 -->|Triggers| HW[LEDs & Buzzer]
     end
 
