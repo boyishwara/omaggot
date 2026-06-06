@@ -214,51 +214,70 @@ flowchart LR
     Admin([Admin])
     Superadmin([Superadmin])
 
-    %% Inheritance
-    Superadmin -.->|inherits| Admin
-    Admin -.->|inherits| User
+    %% Inheritance (Generalization)
+    Superadmin --|> Admin
+    Admin --|> User
 
     %% System Boundary
     subgraph O_Maggot_System [O'Maggot Box System]
         direction TB
-        UC1(View Live Dashboard)
-        UC2(View Reports & Export)
-        UC3(View Warning Rules)
         
-        UC4(Create/Edit/Delete Rules)
-        UC5(Toggle Rules On/Off)
-        UC6(Delete Sensor Data)
-        UC7(Trigger Test Notifications)
-        UC8(Trigger Hardware Simulation)
-        UC9(Manage Telegram Subscribers)
+        %% Use Cases
+        UC_Auth(Authenticate / Login)
         
-        UC10(Approve/Reject Admins)
+        UC_Dash(View Live Dashboard)
+        UC_Rep(View Historical Reports)
+        UC_Exp(Export Data to CSV)
+        
+        UC_ViewRule(View Warning Rules)
+        UC_MgmtRule(Manage Rules)
+        UC_TestNotif(Trigger Test Notifications)
+        
+        UC_Simulate(Trigger Hardware Simulation)
+        UC_DelData(Delete Sensor Data)
+        UC_Subscribers(Manage Telegram Subscribers)
+        
+        UC_UserMgmt(Manage Users)
+        UC_Approve(Approve/Reject Admins)
+
+        %% Include relationships (Mandatory)
+        UC_Dash -.->|<<include>>| UC_Auth
+        UC_Rep -.->|<<include>>| UC_Auth
+        UC_ViewRule -.->|<<include>>| UC_Auth
+        
+        %% Extend relationships (Optional behavior)
+        UC_Exp -.->|<<extend>>| UC_Rep
+        UC_MgmtRule -.->|<<extend>>| UC_ViewRule
+        UC_TestNotif -.->|<<extend>>| UC_MgmtRule
+        UC_Approve -.->|<<extend>>| UC_UserMgmt
     end
 
-    %% User Relations
-    User --> UC1
-    User --> UC2
-    User --> UC3
+    %% Actor to Use Case Relationships
+    User --> UC_Dash
+    User --> UC_Rep
+    User --> UC_ViewRule
 
-    %% Admin Relations
-    Admin --> UC4
-    Admin --> UC5
-    Admin --> UC6
-    Admin --> UC7
-    Admin --> UC8
-    Admin --> UC9
+    Admin --> UC_MgmtRule
+    Admin --> UC_Simulate
+    Admin --> UC_DelData
+    Admin --> UC_Subscribers
 
-    %% Superadmin Relations
-    Superadmin --> UC10
+    Superadmin --> UC_UserMgmt
 
     classDef actor fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef usecase fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
     class User,Admin,Superadmin actor;
+    class UC_Auth,UC_Dash,UC_Rep,UC_Exp,UC_ViewRule,UC_MgmtRule,UC_TestNotif,UC_Simulate,UC_DelData,UC_Subscribers,UC_UserMgmt,UC_Approve usecase;
 ```
 
 *Explanation:* 
-- **User (Normal User):** Represents a base-level actor with read-only privileges. They can monitor the dashboard, view historical reports, and see the active rules, but cannot alter the system state.
-- **Admin (Approved):** Inherits all capabilities of the User (indicated by the dashed inheritance arrow) but gains write-access to the system's operational parameters. They can modify environmental thresholds (rules), manage notification subscribers, and trigger hardware tests/simulations to verify the physical alarms.
-- **Superadmin:** The highest-level actor. Inherits all Admin capabilities but holds exclusive authority over user management, specifically the ability to approve or reject pending Admin accounts, ensuring tight security over who controls the system.
+- **Actors & Inheritance:** We use standard UML actor generalization (`--|>`). The `Superadmin` inherits everything from `Admin`, and `Admin` inherits everything from `User`.
+- **`<<include>>` (Mandatory):** Viewing the Dashboard, Reports, or Rules strictly requires the user to **Authenticate / Login** first. The base use cases cannot execute without it.
+- **`<<extend>>` (Optional):** Extending use cases provide optional functionality to a base use case. For example, while viewing reports, a user can optionally **Export Data to CSV**. While viewing rules, an Admin can optionally **Manage Rules** (Create/Edit/Toggle). While managing users, a Superadmin can optionally **Approve/Reject Admins**.
+- **Roles:**
+  - **User (Normal User):** Has read-only capabilities (Dashboard, Reports, Rules).
+  - **Admin (Approved):** Gains write-access to the system state (Managing rules, deleting data, testing hardware/notifications).
+  - **Superadmin:** The highest-level actor with exclusive authority over User Management.
 
 ### The "Pending Admin" Workflow (State Diagram)
 
