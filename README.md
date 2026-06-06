@@ -1,4 +1,4 @@
-# O'Maggot Box V2
+﻿# O'Maggot Box V2
 
 An enterprise-grade Internet of Things (IoT) environmental monitoring system specifically designed for Black Soldier Fly (BSF) Maggot cultivation.
 
@@ -6,7 +6,7 @@ BSF maggots require precise temperature and humidity ranges to thrive. This syst
 
 ---
 
-## 🏗️ System Architecture
+## ðŸ—ï¸ System Architecture
 
 To help developers and stakeholders understand the system at a glance, here is the breakdown of physical hardware, cloud services, and the database.
 
@@ -149,7 +149,7 @@ erDiagram
 
 ---
 
-## 🧠 Critical Analysis: Why These Technologies?
+## ðŸ§  Critical Analysis: Why These Technologies?
 
 Building a reliable IoT system requires bridging the gap between embedded hardware (C++), continuous data streams, and modern web applications. Here is the critical reasoning behind our technology stack choices:
 
@@ -179,7 +179,106 @@ Building a reliable IoT system requires bridging the gap between embedded hardwa
 
 ---
 
-## 🌡️ Heat Index (Indeks Kenyamanan)
+## 🔌 Deep Dive: How the ESP32 Talks to the Web (and Why It Doesn't Need Your Local Network)
+
+This is one of the most critical and commonly misunderstood aspects of the system. A naive IoT implementation would require the ESP32 and the web server to be on the **same WiFi network**, making it useless the moment you leave home. O'Maggot Box V2 is built differently, and understanding why requires unpacking each layer.
+
+### The Core Problem with Local-Only Architectures
+
+Imagine the simple approach: ESP32 sends an HTTP POST directly to `http://localhost:3000/api/sensor`. This works when your laptop (running the Next.js server) and the ESP32 box are on the same router. The moment you close your laptop, unplug it, or the farmer wants to check the dashboard from their phone while at a market, the entire system is dead. This is not a monitoring system - it is a desk toy.
+
+The question becomes: **how do you make an embedded device with no fixed IP address, sitting on a random home router behind NAT, reliably send data to a cloud server and receive commands back?**
+
+### The Answer: A Cloud MQTT Broker as the Universal Middleman
+
+The solution is to introduce a **third-party cloud broker** that both the ESP32 and the server can always reach over the public internet. Both parties connect *outward* to this shared broker, so neither needs to know the other's location, IP address, or local network.
+
+```
+                        [ PUBLIC INTERNET ]
+
+  ESP32 (anywhere)  --------------------------►  HiveMQ Cloud Broker
+  (port 8883 / TLS)                              (fixed public address)
+                                                        |
+  Node.js Worker    ◄---------------------------------┘
+  (anywhere)        (subscribes to the same broker)
+```
+
+This is the **MQTT Publish-Subscribe pattern**. The ESP32 never talks *to* the server directly. The server never talks *to* the ESP32 directly. They both talk *through* a neutral broker. This is a fundamental architectural shift from the request-response model of HTTP.
+
+### Step-by-Step: A Single Reading, Traced End-to-End
+
+**Step 1 - ESP32 Reads Sensor Data**
+
+The DHT21 sensor is polled every 5 seconds. Two float values are produced: `temperature` (°C) and `humidity` (% RH). These are packed into a compact JSON string. The payload is deliberately minimal - under 100 bytes. No HTTP headers, no cookies, no session tokens. MQTT handles the framing. Compare this to a full HTTP POST request which carries 400-800 bytes of headers alone. For a device sending data every 5 seconds, 24/7, this bandwidth efficiency matters significantly.
+
+**Step 2 - ESP32 Publishes via MQTT over TLS (port 8883)**
+
+The ESP32 establishes a **persistent TCP connection** to the HiveMQ Cloud broker on **port 8883** - the IANA-assigned port for MQTT over TLS (equivalent to port 443 for HTTPS). The connection is fully encrypted. The current implementation uses `setInsecure()` mode, meaning data is encrypted in transit but the server certificate chain is not verified by the client. This is an accepted trade-off for a prototype; full certificate pinning would require embedding a Root CA into the firmware.
+
+The payload is published to the **topic** `omaggot/sensor/data`. An MQTT topic is simply a routing address - a string that acts like a channel name. Anyone subscribed to that string will receive a copy of the message. The ESP32 does not need to know who is listening or where they are.
+
+**Step 3 - HiveMQ Cloud Brokers the Message**
+
+HiveMQ is a managed, enterprise-grade MQTT broker running on permanent cloud infrastructure. The instant the ESP32 publishes, HiveMQ forwards a copy to every active subscriber on that topic. The ESP32 is completely unaware of the server's existence, IP address, or current state.
+
+Why HiveMQ over a self-hosted Mosquitto? A local Mosquitto broker on your laptop has the exact same problem as a local Next.js server - it is not reachable from the public internet without port forwarding, a static public IP, and DNS configuration. HiveMQ Cloud provides a permanent, resolvable public hostname with authentication and TLS included, on a free developer tier.
+
+**Step 4 - Node.js MQTT Worker Receives the Message**
+
+The Node.js Worker (`mqtt-worker.js`) runs as a long-lived process, completely separate from Next.js. It maintains a **persistent, stateful MQTT connection** to HiveMQ and is subscribed to `omaggot/sensor/data`.
+
+This separate process exists for a non-obvious but critical architectural reason: Next.js on Vercel runs as **serverless functions**. A serverless function boots on demand for one request, then shuts down after a few seconds of inactivity. It has no persistent memory, no open sockets between calls. You cannot hold an MQTT connection inside a serverless function because the connection would die between sensor readings. MQTT is a stateful protocol requiring a long-lived TCP connection - fundamentally incompatible with the serverless model.
+
+The Node.js Worker solves this. It is the *only* always-on process in the system. It holds the one persistent MQTT connection and converts each incoming MQTT message into a discrete HTTP POST that Next.js can handle statelessly.
+
+**Step 5 - Worker Forwards Data to the Next.js API**
+
+The Worker fires `POST /api/sensor` with the sensor JSON as the body. From Next.js's perspective, this is an ordinary HTTP request. It does not know or care that the data originated from MQTT or an ESP32.
+
+**Step 6 - Next.js Processes, Evaluates, and Persists**
+
+The server-side API route:
+1. Validates the device ID and API key (guards against spoofed data injection from unknown sources).
+2. Calculates the **Heat Index** server-side from the temperature and humidity values using the Rothfusz formula.
+3. Fetches all active `warning_rules` from the database and evaluates each one against the new reading.
+4. Determines the final `status` (NORMAL, WARNING, or DANGER).
+5. Inserts the reading into `sensor_readings` in Supabase.
+6. If the status is WARNING or DANGER: inserts a record into `notifications`. This triggers a Supabase Database Webhook, which calls the Telegram endpoint and sends an alert to all active subscribers.
+7. Returns the computed `status` in the HTTP response body.
+
+**Step 7 - Status Flows Back to the Physical Device**
+
+The Worker receives the HTTP response containing the `status` string. It immediately publishes this value to the topic `omaggot/sensor/status`. The ESP32, which is subscribed to this topic, receives it through its MQTT callback function. The internal `currentStatus` variable is updated, and on the next `loop()` iteration, the hardware indicators (LEDs, buzzer) are set accordingly. This closes the feedback loop: the physical device reflects the server's computed verdict.
+
+**Step 8 - Dashboard Updates with Zero Polling**
+
+When a new row is inserted into `sensor_readings`, Supabase's Realtime engine (built on PostgreSQL logical replication) detects the change and broadcasts it over a persistent WebSocket to all connected browsers. The dashboard updates the chart and metric cards instantly - no `setInterval` polling, no page refresh, no manual HTTP requests. The dashboard is a live mirror of the database.
+
+### Why No Same-Network Requirement: Summary Table
+
+| Component | Connection type | Why location is irrelevant |
+|:---|:---|:---|
+| **ESP32** | Outbound TCP to HiveMQ (port 8883) | Any WiFi with internet works. Home, farm, cafe - anywhere. |
+| **MQTT Worker** | Outbound TCP to HiveMQ (port 8883) | Runs on any machine with internet. Same machine as Next.js or a different one entirely. |
+| **Next.js API** | Receives inbound HTTP from Worker | Worker calls it by URL (`localhost:3000` or a Vercel domain). Server location is irrelevant. |
+| **Browser Dashboard** | Outbound WebSocket to Supabase Realtime | Works from any device with a browser and internet access. |
+| **Telegram Webhook** | Supabase calls Next.js public URL | Both are cloud services. No local networking involved. |
+
+**The ESP32 never makes a direct connection to Next.js.** It never needs to know the server's IP address or domain. All it needs is the fixed, permanent HiveMQ broker hostname. This means the Next.js server can be deployed to Vercel or running locally on port 3000 - the ESP32 is oblivious to the difference. The ESP32 can be in a farm in East Java while the developer monitors the dashboard from a laptop in Bandung or Singapore. The system survives server restarts, IP changes, and full Next.js redeployments, as long as HiveMQ remains reachable and the Worker is running.
+
+### Security Considerations and Critical Trade-offs
+
+**`setInsecure()` on ESP32 TLS:** Data is fully encrypted in transit, so no one eavesdropping can read sensor values. However, the ESP32 does not verify it is talking to the *real* HiveMQ server, opening a theoretical man-in-the-middle vulnerability. In production, you would load the HiveMQ root CA certificate using `setCACert()`.
+
+**API Key in `config.h`:** The API key is hardcoded and committed to the repository. Even if an attacker obtained it, the worst they can do is inject fake sensor readings. They cannot read admin data, modify rules, or delete records, because those operations require Supabase Auth tokens which are never stored on or near the ESP32.
+
+**MQTT Credentials in `config.h`:** An attacker with these credentials could subscribe to the sensor data topic (reading raw readings - a privacy concern) or publish fake data. In production, credentials would be provisioned securely via a device management platform.
+
+**Supabase RLS as the True Security Backstop:** Regardless of the above vulnerabilities, Row Level Security on Supabase ensures the database cannot be manipulated without valid Supabase Auth tokens. The `service_role` key - which bypasses RLS and is used by the server-side API - is stored only as a server-side environment variable, never exposed to the browser, the ESP32, or the Worker. Even a fully compromised ESP32 cannot touch the database schema, delete data, or access other users' records.
+
+---
+
+## ðŸŒ¡ï¸ Heat Index (Indeks Kenyamanan)
 
 In the BSF (Black Soldier Fly) cultivation process, it's not just the absolute temperature that matters, but how "hot" the environment feels to the maggots when combined with humidity. This is known as the **Heat Index**.
 
@@ -187,13 +286,13 @@ The system automatically calculates the Heat Index server-side using a modified 
 
 **Calculation Range & Rules:**
 
-- The formula is only applied when the temperature is **&ge; 26.7 °C** and the humidity is **&ge; 40%**.
+- The formula is only applied when the temperature is **&ge; 26.7 Â°C** and the humidity is **&ge; 40%**.
 - If the environmental conditions are below these thresholds, the system defaults the Heat Index to be equal to the current temperature, as the humidity does not significantly amplify the perceived heat.
 - This computed value is then evaluated against user-defined threshold rules (Normal, Warning, Danger) exactly like raw temperature or humidity.
 
 ---
 
-## 👥 Pembagian Roles (Role Distribution & Access Control)
+## ðŸ‘¥ Pembagian Roles (Role Distribution & Access Control)
 
 To maintain strict security - especially concerning hardware simulation and alert rule modifications - the system implements a robust Role-Based Access Control (RBAC) mechanism.
 
@@ -201,16 +300,16 @@ There are three distinct roles in the system. Here is exactly what they can and 
 
 | Feature / Capability | User (Normal) | Admin (Pending) | Admin (Approved) | Superadmin |
 | :--- | :---: | :---: | :---: | :---: |
-| **View Live Dashboard** | ✅ | ✅ | ✅ | ✅ |
-| **View Reports & Export Data**| ✅ | ✅ | ✅ | ✅ |
-| **View Warning Rules** | ✅ | ✅ | ✅ | ✅ |
-| **Create / Edit / Delete Rules**| ❌ | ❌ | ✅ | ✅ |
-| **Toggle Rules On/Off** | ❌ | ❌ | ✅ | ✅ |
-| **Delete Sensor Data (Reports)**| ❌ | ❌ | ✅ | ✅ |
-| **Trigger Test Notifications** | ❌ | ❌ | ✅ | ✅ |
-| **Trigger Hardware Simulation**| ❌ | ❌ | ✅ | ✅ |
-| **Manage / Remove Subscribers**| ❌ | ❌ | ✅ | ✅ |
-| **Approve / Reject Admins** | ❌ | ❌ | ❌ | ✅ |
+| **View Live Dashboard** | âœ… | âœ… | âœ… | âœ… |
+| **View Reports & Export Data**| âœ… | âœ… | âœ… | âœ… |
+| **View Warning Rules** | âœ… | âœ… | âœ… | âœ… |
+| **Create / Edit / Delete Rules**| âŒ | âŒ | âœ… | âœ… |
+| **Toggle Rules On/Off** | âŒ | âŒ | âœ… | âœ… |
+| **Delete Sensor Data (Reports)**| âŒ | âŒ | âœ… | âœ… |
+| **Trigger Test Notifications** | âŒ | âŒ | âœ… | âœ… |
+| **Trigger Hardware Simulation**| âŒ | âŒ | âœ… | âœ… |
+| **Manage / Remove Subscribers**| âŒ | âŒ | âœ… | âœ… |
+| **Approve / Reject Admins** | âŒ | âŒ | âŒ | âœ… |
 
 ### System Use Case Diagram
 
@@ -250,15 +349,15 @@ flowchart LR
         UC_Approve(Approve/Reject Admins)
 
         %% Include relationships (Mandatory)
-        UC_Dash -.->|"«include»"| UC_Auth
-        UC_Rep -.->|"«include»"| UC_Auth
-        UC_ViewRule -.->|"«include»"| UC_Auth
+        UC_Dash -.->|"Â«includeÂ»"| UC_Auth
+        UC_Rep -.->|"Â«includeÂ»"| UC_Auth
+        UC_ViewRule -.->|"Â«includeÂ»"| UC_Auth
         
         %% Extend relationships (Optional behavior)
-        UC_Exp -.->|"«extend»"| UC_Rep
-        UC_MgmtRule -.->|"«extend»"| UC_ViewRule
-        UC_TestNotif -.->|"«extend»"| UC_MgmtRule
-        UC_Approve -.->|"«extend»"| UC_UserMgmt
+        UC_Exp -.->|"Â«extendÂ»"| UC_Rep
+        UC_MgmtRule -.->|"Â«extendÂ»"| UC_ViewRule
+        UC_TestNotif -.->|"Â«extendÂ»"| UC_MgmtRule
+        UC_Approve -.->|"Â«extendÂ»"| UC_UserMgmt
     end
 
     %% Actor to Use Case Relationships
@@ -282,8 +381,8 @@ flowchart LR
 *Explanation:*
 
 - **Actors & Inheritance:** We use standard UML actor generalization (`--|>`). The `Superadmin` inherits everything from `Admin`, and `Admin` inherits everything from `User`.
-- **`«include»` (Mandatory):** Viewing the Dashboard, Reports, or Rules strictly requires the user to **Authenticate / Login** first. The base use cases cannot execute without it.
-- **`«extend»` (Optional):** Extending use cases provide optional functionality to a base use case. For example, while viewing reports, a user can optionally **Export Data to CSV**. While viewing rules, an Admin can optionally **Manage Rules** (Create/Edit/Toggle). While managing users, a Superadmin can optionally **Approve/Reject Admins**.
+- **`Â«includeÂ»` (Mandatory):** Viewing the Dashboard, Reports, or Rules strictly requires the user to **Authenticate / Login** first. The base use cases cannot execute without it.
+- **`Â«extendÂ»` (Optional):** Extending use cases provide optional functionality to a base use case. For example, while viewing reports, a user can optionally **Export Data to CSV**. While viewing rules, an Admin can optionally **Manage Rules** (Create/Edit/Toggle). While managing users, a Superadmin can optionally **Approve/Reject Admins**.
 - **Roles:**
   - **User (Normal User):** Has read-only capabilities (Dashboard, Reports, Rules).
   - **Admin (Approved):** Gains write-access to the system state (Managing rules, deleting data, testing hardware/notifications).
@@ -326,7 +425,7 @@ stateDiagram-v2
 
 ---
 
-## 🚀 Step-by-Step Setup Guide
+## ðŸš€ Step-by-Step Setup Guide
 
 ### Phase 1: Database Setup (Supabase)
 
