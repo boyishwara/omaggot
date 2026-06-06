@@ -36,9 +36,9 @@ export function ApprovalGate({
       <div className="absolute inset-0 cursor-not-allowed z-10" />
 
       {/* Tooltip */}
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs font-medium rounded-lg shadow-xl whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-20 flex items-center gap-1.5 max-w-[220px] text-center leading-snug">
-        <ShieldAlert className="h-3.5 w-3.5 shrink-0 text-amber-400" />
-        {message}
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs font-medium rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-[100] flex items-center gap-1.5 w-[220px] text-center leading-snug">
+        <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
+        <span className="flex-1 text-left">{message}</span>
         {/* Tooltip arrow */}
         <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
       </div>

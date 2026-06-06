@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, Trash2, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
+import { User, Mail, Lock, Trash2, ShieldAlert, CheckCircle2, Clock, Eye, EyeOff } from 'lucide-react';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
@@ -15,6 +15,9 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [loadingName, setLoadingName] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
@@ -67,6 +70,15 @@ export default function ProfilePage() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      showMessage('error', 'Passwords do not match');
+      return;
+    }
+    if (password.length < 8 || !/\d/.test(password)) {
+      showMessage('error', 'Password must be at least 8 characters and contain at least one number');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to change your password?')) return;
     setLoadingPassword(true);
     const { error } = await supabase.auth.updateUser({ password });
@@ -74,6 +86,7 @@ export default function ProfilePage() {
     else {
       showMessage('success', 'Password updated successfully.');
       setPassword('');
+      setConfirmPassword('');
     }
     setLoadingPassword(false);
   };
@@ -206,7 +219,21 @@ export default function ProfilePage() {
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="profile-password" className="text-sm font-semibold text-slate-700">New Password</label>
-                  <Input id="profile-password" name="password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} placeholder="••••••••" required />
+                  <div className="relative">
+                    <Input id="profile-password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required className="pr-10" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="profile-confirm-password" className="text-sm font-semibold text-slate-700">Confirm New Password</label>
+                  <div className="relative">
+                    <Input id="profile-confirm-password" name="confirm-password" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" required className="pr-10" />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none">
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <Button type="submit" disabled={loadingPassword || !password} className="w-full">
                   {loadingPassword ? 'Updating...' : 'Update Password'}
