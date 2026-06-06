@@ -215,8 +215,8 @@ flowchart LR
     Superadmin([Superadmin])
 
     %% Inheritance (Generalization)
-    Superadmin --|> Admin
-    Admin --|> User
+    Superadmin -.->|inherits| Admin
+    Admin -.->|inherits| User
 
     %% System Boundary
     subgraph O_Maggot_System [O'Maggot Box System]
