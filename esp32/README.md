@@ -1,4 +1,4 @@
-# Smart Maggot Box - ESP32 Hardware
+# O'Maggot Box - ESP32 Hardware
 
 ## Persyaratan
 

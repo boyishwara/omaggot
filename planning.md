@@ -1,4 +1,4 @@
-# planning.md — Smart Maggot Box: Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT
+# planning.md — O'Maggot Box: Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT
 
 > **Untuk AI Coding Assistant**: Baca dokumen ini secara menyeluruh sebelum menulis satu baris kode pun.
 > Dokumen ini adalah sumber kebenaran tunggal (single source of truth) untuk arsitektur, konvensi, dan keputusan desain proyek ini.
@@ -7,7 +7,7 @@
 
 ## 1. Gambaran Proyek
 
-**Nama**: Smart Maggot Box — Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT  
+**Nama**: O'Maggot Box — Sistem Monitoring Perkembangbiakan Maggot Berbasis IoT  
 **Konteks**: Tugas Besar Mata Kuliah Semester 4  
 **Tujuan**: Memantau kondisi lingkungan budidaya maggot BSF (*Black Soldier Fly* / *Hermetia illucens*) secara real-time menggunakan sensor IoT, menampilkan data di web dashboard, dan mengirim peringatan otomatis ketika kondisi di luar ambang batas optimal.
 
@@ -330,7 +330,7 @@ INSERT INTO system_settings (key, value) VALUES
   ('email_notifications_enabled', 'false'),
   ('admin_email', ''),
   ('device_id', 'esp32-001'),
-  ('system_name', 'Smart Maggot Box');
+  ('system_name', 'O'Maggot Box');
 ```
 
 ---

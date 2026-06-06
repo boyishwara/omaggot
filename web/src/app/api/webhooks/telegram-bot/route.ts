@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     let replyMessage = '';
 
     if (command === '/start') {
-      replyMessage = `👋 *Welcome to Smart Maggot Box Bot!*\n\n` +
+      replyMessage = `👋 *Welcome to O'Maggot Box Bot!*\n\n` +
                      `I can help you monitor the real-time conditions of your BSF maggot cultivation box.\n\n` +
                      `*Available Commands:*\n` +
                      `👉 /subscribe - Start receiving Danger alerts automatically\n` +

@@ -50,7 +50,7 @@ export function Navbar({ className }: { className?: string }) {
           <div className="bg-gradient-to-br from-teal-400 to-teal-600 text-white p-2 rounded-xl shadow-md shadow-teal-500/30 group-hover:shadow-teal-500/50 group-hover:-translate-y-0.5 transition-all duration-300">
             <Logo className="h-5 w-5" />
           </div>
-          <span className="font-serif text-xl font-bold tracking-tight text-slate-800">Smart Maggot</span>
+          <span className="font-serif text-xl font-bold tracking-tight text-slate-800">O'Maggot</span>
         </a>
 
         {/* Actions */}

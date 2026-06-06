@@ -1,7 +1,7 @@
 {
-  "name": "Smart Maggot Box Dashboard",
+  "name": "O'Maggot Box Dashboard",
   "short_name": "MaggotBox",
-  "description": "IoT Dashboard for Smart Maggot Box Cultivation",
+  "description": "IoT Dashboard for O'Maggot Box Cultivation",
   "start_url": "/admin/dashboard",
   "display": "standalone",
   "background_color": "#0f172a",

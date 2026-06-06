@@ -27,15 +27,15 @@ export function HeroSection() {
           </div>
 
           <h1 className="text-display-xl mb-6 text-slate-900 drop-shadow-sm">
-            Keep your maggot farm at{' '}
+            O'Maggot! Keep your farm at{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-600">
               peak conditions.
             </span>
           </h1>
 
           <p className="text-title-md text-slate-600 mb-6 max-w-lg leading-relaxed">
-            Smart Maggot Box continuously monitors temperature and humidity from an ESP32 sensor,
-            alerting you the moment conditions drift outside safe ranges for Black Soldier Fly larvae.
+            O'Maggot (like Oh My God!) Box continuously monitors temperature and humidity from an ESP32 sensor,
+            alerting you the moment conditions drift outside safe ranges. It's un-fly-believably good for Black Soldier Fly larvae!
           </p>
 
           {/* Quick stats */}

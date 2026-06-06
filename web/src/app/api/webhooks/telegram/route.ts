@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     const emoji = payload.severity === 'DANGER' ? '🚨' : '⚠️';
     const text =
-      `${emoji} *Smart Maggot Box Alert*\n\n` +
+      `${emoji} *O'Maggot Box Alert*\n\n` +
       `*Severity:* ${payload.severity}\n` +
       `*Rule:* ${payload.rule_name}\n\n` +
       `*Message:* ${payload.message}\n\n` +

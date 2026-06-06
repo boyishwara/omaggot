@@ -64,7 +64,7 @@ export default function RegisterPage() {
             <Logo className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-display-sm text-slate-900 tracking-tight">Create Account</h1>
-          <p className="text-body-md text-slate-500 mt-2">Join Smart Maggot Box</p>
+          <p className="text-body-md text-slate-500 mt-2">Join O'Maggot Box</p>
         </div>
         
         <div className="bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-2xl shadow-slate-200 rounded-3xl p-8">

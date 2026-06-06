@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Maggot Box | System Monitoring",
+  title: "O'Maggot Box | System Monitoring",
   description: "Real-time monitoring system for BSF maggot cultivation based on IoT",
 };
 

@@ -107,7 +107,7 @@ export default function DashboardClient({
       >
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Environment Overview</h1>
-          <p className="text-slate-500 mt-0.5 text-sm">Real-time metrics from Smart Maggot Box</p>
+          <p className="text-slate-500 mt-0.5 text-sm">Real-time metrics from O'Maggot Box</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

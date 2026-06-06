@@ -45,7 +45,7 @@ function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNav
           <div className="bg-gradient-to-br from-teal-400 to-teal-600 text-white p-2 rounded-lg shadow-md shadow-teal-500/20 group-hover:shadow-teal-500/40 group-hover:-translate-y-0.5 transition-all duration-300">
             <Logo className="h-5 w-5" />
           </div>
-          <span className="font-serif text-xl font-semibold tracking-tight text-slate-100">Smart Maggot</span>
+          <span className="font-serif text-xl font-semibold tracking-tight text-slate-100">O'Maggot</span>
         </Link>
       </div>
 
@@ -111,7 +111,7 @@ export function DashboardSidebar({ profile }: { profile: UserProfile }) {
           <div className="bg-gradient-to-br from-teal-400 to-teal-600 text-white p-1.5 rounded-lg">
             <Logo className="h-4 w-4" />
           </div>
-          <span className="font-serif text-lg font-semibold text-slate-100">Smart Maggot</span>
+          <span className="font-serif text-lg font-semibold text-slate-100">O'Maggot</span>
         </Link>
         <button
           onClick={() => setMobileOpen(true)}

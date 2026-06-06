@@ -13,7 +13,7 @@ export function Footer() {
               <div className="bg-slate-800 p-2 rounded-lg">
                 <Logo className="h-5 w-5 text-teal-500" />
               </div>
-              <span className="font-serif text-lg text-slate-200 tracking-tight">Smart Maggot Box</span>
+              <span className="font-serif text-lg text-slate-200 tracking-tight">O'Maggot Box</span>
             </div>
             <p className="text-sm max-w-xs leading-relaxed text-center sm:text-left">
               IoT environmental monitoring for Black Soldier Fly cultivation.
@@ -35,7 +35,7 @@ export function Footer() {
 
         {/* Bottom row */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
-          <p>© 2026 Smart Maggot Box. All rights reserved.</p>
+          <p>© 2026 O'Maggot Box. All rights reserved.</p>
           <p>Monitoring Temperature &amp; Humidity for optimal BSF growth.</p>
         </div>
       </div>

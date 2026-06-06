@@ -68,7 +68,7 @@ INSERT INTO system_settings (key, value) VALUES
   ('email_notifications_enabled', 'false'),
   ('admin_email', ''),
   ('device_id', 'esp32-001'),
-  ('system_name', 'Smart Maggot Box'),
+  ('system_name', 'O'Maggot Box'),
   ('simulation_status', 'NONE');
 
 -- ==========================================
