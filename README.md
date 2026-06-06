@@ -1,26 +1,16 @@
 # Smart Maggot Box V2
-
 An enterprise-grade Internet of Things (IoT) environmental monitoring system specifically designed for Black Soldier Fly (BSF) Maggot cultivation.
 
 BSF maggots require precise temperature and humidity ranges to thrive. This system provides real-time monitoring, automated alerts, and comprehensive historical data analysis to ensure optimal breeding conditions and maximize yield.
 
-## Prerequisites
+---
 
-Before you begin, ensure you have the following installed and set up:
+## 🏗️ System Architecture
 
-- **Node.js 18+** installed on your computer.
-- **Arduino IDE** (with ESP32 board manager installed).
-- A free account on **Supabase** (Database).
-- A free account on **HiveMQ Cloud** (MQTT Broker).
-- A **Telegram** account (for receiving alerts).
-
-## System Architecture
-
-To help new developers understand the project quickly, here is a visual breakdown of how the physical hardware, cloud services, and database interact.
+To help developers and stakeholders understand the system at a glance, here is the breakdown of physical hardware, cloud services, and the database.
 
 ### 1. Component Architecture
-
-This diagram shows the physical and cloud boundaries of the system.
+This diagram outlines the physical and cloud boundaries of the system.
 
 ```mermaid
 graph LR
@@ -31,7 +21,7 @@ graph LR
 
     subgraph "Cloud Infrastructure"
         HiveMQ[HiveMQ Cloud MQTT]
-        Worker["Node.js MQTT Worker<br/>"]
+        Worker["Node.js MQTT Worker<br/>(Bridge)"]
         NextJS["Next.js App & API<br/>(Vercel)"]
         Supabase[(Supabase Postgres)]
     end
@@ -51,7 +41,6 @@ graph LR
 ```
 
 ### 2. Data Flow (Sequence)
-
 This diagram illustrates the chronological step-by-step flow when a sensor reading occurs.
 
 ```mermaid
@@ -83,7 +72,6 @@ sequenceDiagram
 ```
 
 ### 3. Database Schema (ERD)
-
 This Entity-Relationship Diagram details the relational PostgreSQL database structure hosted on Supabase.
 
 ```mermaid
@@ -121,151 +109,146 @@ erDiagram
         TIMESTAMPTZ created_at
     }
     
-    system_settings {
-        TEXT key PK
-        TEXT value
+    user_profiles {
+        UUID id PK
+        TEXT name
+        TEXT role
+        BOOLEAN is_approved
     }
     
     telegram_subscribers {
         UUID id PK
         TEXT chat_id
-        TEXT username
         BOOLEAN is_active
     }
 ```
 
-## Comprehensive Tech Stack
+---
 
-### 1. Hardware: ESP32 & DHT22
+## 🧠 Critical Analysis: Why These Technologies?
 
-* **Function:** Reads physical temperature and humidity in the cultivation box.
-- **Reason:** Highly cost-effective, built-in Wi-Fi capabilities, and reliable for continuous 24/7 monitoring in humid environments. Uses WiFiManager for dynamic network configuration.
+Building a reliable IoT system requires bridging the gap between embedded hardware (C++), continuous data streams, and modern web applications. Here is the critical reasoning behind our technology stack choices:
 
-### 2. Connectivity: MQTT & HiveMQ Cloud
+### 1. Supabase (PostgreSQL) vs Traditional Databases
+- **What we needed:** A secure database that can handle rapid time-series inserts from IoT devices, while instantly updating the frontend dashboard without heavy polling.
+- **Why we chose it:** Supabase provides **PostgreSQL** out of the box with built-in **Row Level Security (RLS)** and **Realtime WebSockets**. 
+- **The Benefit:** Instead of writing complex WebSocket servers (Socket.io) to push new temperature readings to the browser, Supabase Realtime allows the Next.js frontend to simply subscribe to database changes. RLS ensures that public users cannot write or delete data directly from the browser, pushing all write-privileges to secure backend API routes.
 
-* **Function:** Facilitates bi-directional communication between the hardware and the backend.
-- **Reason:** MQTT is a lightweight publish/subscribe protocol ideal for IoT. It is significantly more battery and network efficient than standard HTTP polling, maintaining a low-latency persistent connection.
+### 2. Next.js App Router vs Express.js
+- **What we needed:** A robust administrative dashboard and secure API endpoints to process rules.
+- **Why we chose it:** Next.js provides Server-Side Rendering (SSR) and seamless API routes in a single repository.
+- **The Benefit:** Deploying to Vercel is trivial, SEO is perfect (if the landing page scales), and UI components (Tailwind, Framer Motion) integrate seamlessly. However, because Vercel API routes are *serverless* (they shut down when not in use), they cannot hold open continuous MQTT connections. This limitation led directly to the next architectural decision:
 
-### 3. Bridge: Node.js MQTT Worker (`mqtt-worker.js`)
+### 3. MQTT (HiveMQ) + Node.js Worker Bridge
+- **What we needed:** A reliable way for the ESP32 to stream data 24/7 without draining battery or dropping packets due to HTTP overhead.
+- **Why we chose it:** MQTT is the industry standard for IoT—it is lightweight, requires minimal bandwidth, and maintains persistent connections. Since Next.js serverless functions cannot subscribe to MQTT continuously, we introduced a standalone **Node.js MQTT Worker**.
+- **The Benefit:** The Worker acts as a translator. It holds the persistent MQTT connection open, receives the ultra-lightweight payload from the ESP32, and fires a standard HTTP POST request to the Next.js API. This gives us the best of both worlds: efficient IoT hardware communication and scalable serverless backend APIs.
 
-* **Function:** Subscribes to the HiveMQ broker, listens for ESP32 payloads, and forwards them to the Next.js API.
-- **Reason:** Next.js API routes are serverless and cannot natively maintain long-lived MQTT subscriptions without timing out. The Node.js worker acts as a robust, persistent bridge connecting the MQTT world to the HTTP serverless world.
+### 4. Telegram Bot over Custom Push Notifications
+- **What we needed:** Immediate alerts to farmers when the maggot box temperature reaches DANGER levels.
+- **Why we chose it:** Building a custom mobile app strictly for push notifications is expensive, hard to maintain, and causes friction (users don't want to download another app). 
+- **The Benefit:** Telegram offers a free, highly reliable Bot API. Farmers simply send `/subscribe` to the bot, and Supabase Database Webhooks automatically POST to our API which pushes the alert to Telegram. Zero app installations required, instant delivery.
 
-### 4. Backend & Database: Supabase (PostgreSQL)
+---
 
-* **Function:** Stores sensor readings, configurable warning rules, and alert notifications.
-- **Reason:** Provides a powerful relational database out of the box, complete with Row-Level Security (RLS) to lock down data access, and instant Realtime WebSockets to sync UI state seamlessly.
+## 👥 Pembagian Roles (Role Distribution & Access Control)
 
-### 5. Frontend: Next.js 14 (App Router) & React
+To maintain strict security—especially concerning hardware simulation and alert rule modifications—the system implements a robust Role-Based Access Control (RBAC) mechanism. 
 
-* **Function:** Serves as the administrative dashboard for monitoring metrics, configuring rules, generating reports, and managing settings.
-- **Reason:** Next.js provides Server-Side Rendering (SSR) for instantaneous initial page loads, excellent SEO characteristics, and secure API route integration.
+There are three distinct roles in the system. Here is exactly what they can and cannot do:
 
-### 6. UI/UX: Tailwind CSS, Framer Motion, Recharts
+| Feature / Capability | User (Normal) | Admin (Pending) | Admin (Approved) | Superadmin |
+| :--- | :---: | :---: | :---: | :---: |
+| **View Live Dashboard** | ✅ | ✅ | ✅ | ✅ |
+| **View Reports & Export Data**| ✅ | ✅ | ✅ | ✅ |
+| **View Warning Rules** | ✅ | ✅ | ✅ | ✅ |
+| **Create / Edit / Delete Rules**| ❌ | ❌ | ✅ | ✅ |
+| **Toggle Rules On/Off** | ❌ | ❌ | ✅ | ✅ |
+| **Delete Sensor Data (Reports)**| ❌ | ❌ | ✅ | ✅ |
+| **Trigger Test Notifications** | ❌ | ❌ | ✅ | ✅ |
+| **Trigger Hardware Simulation**| ❌ | ❌ | ✅ | ✅ |
+| **Manage / Remove Subscribers**| ❌ | ❌ | ✅ | ✅ |
+| **Approve / Reject Admins** | ❌ | ❌ | ❌ | ✅ |
 
-* **Function:** Handles styling, micro-interactions, staggered mount animations, and historical data visualization.
-- **Reason:** Ensures a fully responsive, mobile-first design that feels professional, dynamic, and highly polished on any device.
+### The "Pending Admin" Workflow (State Diagram)
 
-### 7. External Alerts: Telegram Bot API
+To prevent anyone from registering as an Admin and immediately messing with critical temperature thresholds, we introduced an `is_approved` flag.
 
-* **Function:** Sends instant push notifications for critical environmental changes and allows users to query system status.
-- **Reason:** Telegram is a ubiquitous messaging platform, bypassing the high friction of building, deploying, and maintaining a custom mobile app strictly for push notifications.
-
-## Key Features
-
-- **Real-Time Dashboard:** Live metrics updated instantly via WebSockets, featuring a responsive grid and fluid animations.
-- **Configurable Warning Rules:** Define custom thresholds (e.g., Temperature > 35C) to automatically trigger WARNING, DANGER, or CRITICAL alerts.
-- **Data Reports & Export:** Analyze historical data with automatic period summaries. Export data directly to Industry Standard formats including Excel (.xlsx), CSV, TSV, and JSON.
-- **Advanced Data Management:** Multi-strategy deletion tool allowing admins to clear data by specific day, date ranges, age (older than N days), or by severity status to optimize database storage.
-- **Interactive Telegram Bot:** Users can message the bot `/start` to see instructions, `/subscribe` to opt into real-time alerts, `/status` to fetch current readings, and `/unsubscribe` to opt out. Admin dashboard also allows manual subscriber management.
-- **Dynamic Wi-Fi Configuration:** Device uses WiFiManager to spin up a local captive portal for on-the-fly network changes without requiring firmware reflashes.
-
-## Authentication & Roles (RBAC)
-
-The system features a complete Role-Based Access Control implementation:
-- **User (Normal):** Read-only access to monitoring, rules, and reports. Can export data.
-- **Admin:** Can create/edit rules, trigger test simulations, and delete report data. Requires approval by a Superadmin before features unlock.
-- **Superadmin:** Full access to everything, plus a dedicated User Management tab to approve or reject pending Admins.
+```mermaid
+stateDiagram-v2
+    [*] --> Registration
+    Registration --> User : Selects "User"
+    Registration --> Admin_Pending : Selects "Admin"
+    
+    Admin_Pending --> Dashboard : Read-only access
+    Admin_Pending --> Admin_Approved : Superadmin clicks "Approve"
+    Admin_Approved --> FullAccess : Can edit rules & hardware
+    
+    Superadmin --> UserManagement : Has exclusive access to tab
+```
 
 > [!IMPORTANT]  
-> **Creating & Managing Superadmins:**  
-> For strict security—and as an industry standard practice—users cannot select the Superadmin role during registration. Hardcoding Superadmin registration endpoints or secret UI paths is highly vulnerable to discovery and exploitation. By requiring direct database access (which only the system owner has) to assign the initial Superadmin role, we guarantee that privilege escalation vulnerabilities are fundamentally impossible at the application level.
+> **Creating the First Superadmin:**  
+> For maximum security, the "Superadmin" role cannot be selected via the UI during registration. Hardcoding a secret path to become a Superadmin is a massive security vulnerability. 
 > 
-> You must register normally, then promote your account via the database:
-> 1. Register an account at `http://localhost:3000/register` (select either User or Admin).
-> 2. Open the [Supabase Dashboard SQL Editor](https://app.supabase.com/).
-> 3. Run the following query, replacing the email with yours:
+> You must promote your first account manually via the database:
+> 1. Register an account normally at `/register`.
+> 2. Open the **Supabase Dashboard SQL Editor**.
+> 3. Run the following query:
 >    ```sql
 >    UPDATE user_profiles 
 >    SET role = 'superadmin', is_approved = true 
 >    WHERE id = (SELECT id FROM auth.users WHERE email = 'your@email.com');
 >    ```
-> 4. Refresh your dashboard to see the new Superadmin privileges (indicated by the green Active badge) and the new User Management tab.
->
-> Once the first Superadmin is established, they can securely manage and approve all subsequent Admins through the protected UI dashboard.
+> 4. Refresh your dashboard. You will now see the exclusive **User Management** tab, allowing you to securely approve all future Admins from the UI.
 
-## Step-by-Step Setup Guide
+---
+
+## 🚀 Step-by-Step Setup Guide
 
 ### Phase 1: Database Setup (Supabase)
-
 1. Create a new Supabase project.
 2. Navigate to the SQL Editor and run the contents of `supabase/schema.sql` to generate the necessary tables and Row-Level Security (RLS) policies.
-3. Ensure the `ALTER PUBLICATION` commands at the end of the script are executed to enable Realtime WebSockets for the `sensor_readings` and `notifications` tables.
+3. The script automatically enables Realtime WebSockets for `sensor_readings` and `notifications`.
 
 ### Phase 2: Environment Configuration
-
 1. Navigate to the `web` directory and copy `.env.example` to a new file named `.env.local`.
 2. Populate the Supabase credentials (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`).
 3. Populate the HiveMQ Cloud credentials (`HIVEMQ_HOST`, `HIVEMQ_PORT`, `HIVEMQ_USERNAME`, `HIVEMQ_PASSWORD`).
-4. Define a secure `ESP32_API_KEY` to authenticate incoming sensor payloads.
-5. Define `NEXT_PUBLIC_APP_URL` (e.g., `http://localhost:3000` for local dev or `https://your-domain.com` in production). The MQTT worker uses this to know where to send the data.
+4. Define a secure `ESP32_API_KEY` to authenticate incoming sensor payloads from the Worker.
+5. Define `NEXT_PUBLIC_APP_URL` (e.g., `http://localhost:3000` or your production domain).
 
 ### Phase 3: Telegram Bot Integration
->
 > [!WARNING]  
 > **Local Development Note:** Telegram webhooks cannot reach `http://localhost`. If you are testing locally, you MUST use a tunneling service like [Ngrok](https://ngrok.com/) (`ngrok http 3000`) and use the Ngrok URL for your webhooks, OR deploy your Next.js app to Vercel first.
 
-1. Open Telegram and message `@BotFather` to create a new bot and obtain your `TELEGRAM_BOT_TOKEN`. Add this token to `.env.local`.
+1. Open Telegram, message `@BotFather`, create a new bot, and copy your `TELEGRAM_BOT_TOKEN` into `.env.local`.
 2. **Inbound Webhook (Bot Commands):** Register your Next.js API with Telegram so it can receive `/start` and `/subscribe` commands. Open your browser and navigate to:
    `https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=https://your-public-domain.com/api/webhooks/telegram-bot`
 3. **Outbound Webhook (Alerts):** In your Supabase Dashboard, navigate to **Database > Webhooks**.
 4. Create a new Webhook triggered by `INSERT` events on the `notifications` table.
-5. Set the Webhook URL to point to your deployed Next.js endpoint: `https://your-public-domain.com/api/webhooks/telegram`.
+5. Set the Webhook URL to point to your deployed endpoint: `https://your-public-domain.com/api/webhooks/telegram`.
 
 ### Phase 4: Running the Platform Locally
-
 You will need two terminal windows to run both the Web Server and the MQTT Bridge concurrently.
 
 **Terminal 1: Next.js Server**
-
 ```bash
 cd web
 npm install
 npm run dev
 ```
 
-**Terminal 2: MQTT Worker**
-
+**Terminal 2: MQTT Worker Bridge**
 ```bash
 cd web
 node mqtt-worker.js
 ```
 
-### Phase 5: Hardware Flashing
-
-1. **Wiring:** Please refer to the [ESP32 Hardware Guide](esp32/README.md) for the GPIO pinout schema and wiring instructions.
-2. Open the `esp32` directory in the Arduino IDE or PlatformIO.
-3. Install the required libraries via the Arduino Library Manager:
-   - `WiFiManager` (by tzapu)
-   - `PubSubClient` (by Nick O'Leary)
-   - `ArduinoJson` (by Benoit Blanchon)
-   - `DHT sensor library` (by Adafruit)
+### Phase 5: Hardware Flashing (ESP32)
+1. **Wiring:** Please refer to the [ESP32 Hardware Guide](esp32/README.md) for the GPIO pinout schema.
+2. Open the `esp32` directory in the Arduino IDE.
+3. Install required libraries: `WiFiManager`, `PubSubClient`, `ArduinoJson`, `DHT sensor library`.
 4. Update `esp32/smart_maggot_box/config.h` with your HiveMQ connection details.
-5. Select your ESP32 board in the Arduino IDE (e.g., "DOIT ESP32 DEVKIT V1") and flash the code.
-6. On boot, the ESP32 will host a "MaggotBox-Setup" Wi-Fi network for 60 seconds. Connect to it via your phone or laptop to input your local Wi-Fi credentials.
-
-## Important Notes & Best Practices
-
-- **Telegram Webhook Deduplication:** Supabase Webhooks can sometimes fire multiple times for a single event. The `/api/webhooks/telegram` route implements a 30-second in-memory deduplication window to prevent spam. Ensure you only have ONE active webhook configured in Supabase to avoid conflicting triggers.
-- **Worker Persistence:** The `mqtt-worker.js` script must be running continuously to bridge hardware data to the database. In a production environment, this should be hosted on a persistent server (like an EC2 instance or a DigitalOcean Droplet) using a process manager such as `pm2` or encapsulated in a Docker container.
-- **RLS and API Routes:** The frontend dashboard communicates with secure Next.js API routes (e.g., `/api/rules`) rather than querying Supabase directly for write operations. These API routes utilize the Supabase Service Role Key to safely bypass Anon read-only restrictions without compromising database security.
+5. Flash the code to your ESP32.
+6. On boot, the ESP32 will host a "MaggotBox-Setup" Wi-Fi network. Connect to it via your phone to input your local Wi-Fi credentials dynamically.

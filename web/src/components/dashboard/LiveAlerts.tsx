@@ -5,11 +5,11 @@ import { BellRing } from 'lucide-react';
 
 const SEVERITY_CONFIG: Record<string, { dot: string; label: string; msgColor: string; badgeBg: string; badgeText: string }> = {
   DANGER: {
-    dot: 'bg-orange-400 animate-pulse shadow-[0_0_8px_rgba(251,146,60,0.8)]',
-    label: 'text-orange-300 font-semibold',
-    msgColor: 'text-slate-200',
-    badgeBg: 'bg-orange-500/20 border-orange-500/30',
-    badgeText: 'text-orange-300',
+    dot: 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]',
+    label: 'text-red-400 font-semibold',
+    msgColor: 'text-slate-100',
+    badgeBg: 'bg-red-500/20 border-red-500/30',
+    badgeText: 'text-red-300',
   },
   WARNING: {
     dot: 'bg-amber-400',

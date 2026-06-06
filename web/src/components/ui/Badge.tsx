@@ -12,7 +12,7 @@ export function Badge({ className, status, variant = 'pill', children, ...props 
   
   if (status === 'NORMAL') statusClass = 'bg-teal-50 text-teal-700 border border-teal-200 shadow-sm shadow-teal-500/10';
   else if (status === 'WARNING') statusClass = 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm shadow-amber-500/10';
-  else if (status === 'DANGER') statusClass = 'bg-orange-50 text-orange-700 border border-orange-200 shadow-sm shadow-orange-500/10';
+  else if (status === 'DANGER') statusClass = 'bg-red-50 text-red-700 border border-red-200 shadow-sm shadow-red-500/10';
   else if (status === 'OFFLINE') statusClass = 'bg-slate-100 text-slate-600 border border-slate-200';
 
   const baseClass = variant === 'solid' 

@@ -21,7 +21,7 @@ const EMPTY_FORM = {
 
 const SEVERITY_STYLE: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   WARNING: { bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-400', label: 'Warning' },
-  DANGER:  { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500', label: 'Danger' },
+  DANGER:  { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Danger' },
 };
 
 const PARAM_LABEL: Record<string, string> = {
@@ -131,7 +131,7 @@ function RuleModal({
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, severity: s }))}
                       className={`py-2.5 px-4 rounded-xl border-2 text-sm font-semibold transition-all ${form.severity === s
-                        ? (s === 'WARNING' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-orange-500 bg-orange-50 text-orange-700')
+                        ? (s === 'WARNING' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-red-500 bg-red-50 text-red-700')
                         : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
                       }`}
                     >
@@ -310,7 +310,7 @@ export default function RulesPage() {
                           </td>
                           {/* Severity */}
                           <td className="px-5 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${sev.bg} ${sev.text} ${rule.severity === 'WARNING' ? 'border-amber-200' : 'border-orange-200'}`}>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${sev.bg} ${sev.text} ${rule.severity === 'WARNING' ? 'border-amber-200' : 'border-red-200'}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${sev.dot}`} />
                               {sev.label}
                             </span>
@@ -352,7 +352,7 @@ export default function RulesPage() {
                     <div key={rule.id} className={`p-4 space-y-3 ${!rule.is_active ? 'opacity-60' : ''}`}>
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-semibold text-slate-900 text-sm">{rule.name}</p>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border shrink-0 ${sev.bg} ${sev.text} ${rule.severity === 'WARNING' ? 'border-amber-200' : 'border-orange-200'}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border shrink-0 ${sev.bg} ${sev.text} ${rule.severity === 'WARNING' ? 'border-amber-200' : 'border-red-200'}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${sev.dot}`} />
                           {sev.label}
                         </span>

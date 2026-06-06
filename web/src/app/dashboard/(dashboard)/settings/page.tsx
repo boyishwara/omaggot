@@ -144,7 +144,7 @@ export default function SettingsPage() {
               ) : (
                 <>
                   <StatRow icon={<Activity className="h-4 w-4 text-teal-500" />} label="Total Sensor Readings" value={systemStats.sensorCount.toLocaleString()} />
-                  <StatRow icon={<BellRing className="h-4 w-4 text-orange-500" />} label="Total Alerts Fired" value={systemStats.alertCount.toLocaleString()} />
+                  <StatRow icon={<BellRing className="h-4 w-4 text-red-500" />} label="Total Alerts Fired" value={systemStats.alertCount.toLocaleString()} />
                   <StatRow icon={<Wifi className="h-4 w-4 text-blue-500" />} label="Active Warning Rules" value={String(systemStats.activeRules)} />
                   <StatRow icon={<Smartphone className="h-4 w-4 text-violet-500" />} label="ESP32 Last Seen" value={lastSeen} />
                   <StatRow icon={<Server className="h-4 w-4 text-slate-500" />} label="Version" value="1.0.0" />
@@ -196,7 +196,10 @@ export default function SettingsPage() {
                   <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
                     {activeCount} active
                   </span>
-                  <button onClick={fetchAll} className="text-xs text-teal-600 hover:text-teal-700 font-semibold">Refresh</button>
+                  <a href="https://t.me/smart_maggot_kel_7_bot" target="_blank" rel="noreferrer" className="text-xs text-white bg-[#0088cc] hover:bg-[#0077b5] px-3 py-1.5 rounded-full font-semibold transition-colors flex items-center gap-1.5">
+                    <Send className="h-3 w-3" /> Bot
+                  </a>
+                  <button onClick={fetchAll} className="text-xs text-teal-600 hover:text-teal-700 font-semibold ml-2">Refresh</button>
                 </div>
               </div>
             </CardHeader>

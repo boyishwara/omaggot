@@ -51,7 +51,7 @@ function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNav
 
       <div className="px-6 py-4 border-b border-slate-800/50 bg-slate-800/20">
         <p className="text-slate-100 font-medium">Hello, {profile.name}!</p>
-        <p className="text-xs text-slate-400 mt-1 capitalize">You're a {profile.role}</p>
+        <p className="text-xs text-slate-400 mt-1 capitalize">You're an/a {profile.role}</p>
         {profile.role === 'admin' && !profile.is_approved && (
           <p className="text-[10px] text-amber-400 mt-1 font-medium bg-amber-400/10 inline-block px-2 py-0.5 rounded">Pending Approval</p>
         )}

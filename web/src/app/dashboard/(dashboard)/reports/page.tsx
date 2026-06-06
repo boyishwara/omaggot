@@ -418,7 +418,7 @@ export default function ReportsPage() {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Status Distribution</p>
                   <StatusBar label="Normal" count={stats.normalCount} total={stats.count} color="bg-teal-500" />
                   <StatusBar label="Warning" count={stats.warningCount} total={stats.count} color="bg-amber-400" />
-                  <StatusBar label="Danger" count={stats.dangerCount} total={stats.count} color="bg-orange-500" />
+                  <StatusBar label="Danger" count={stats.dangerCount} total={stats.count} color="bg-red-500" />
                 </div>
               </div>
             )}
