@@ -99,11 +99,18 @@ graph TD
 > **Tips Merakit dengan Breadboard:**
 > Karena ESP32 hanya memiliki beberapa pin GND, Anda disarankan menggunakan **Breadboard**. Hubungkan satu pin GND dari ESP32 ke jalur memanjang (biasanya ditandai garis biru/-) di breadboard. Setelah itu, Anda bisa menghubungkan GND dari DHT21, Katoda LED Hijau, Katoda LED Merah, dan GND Buzzer ke jalur biru breadboard tersebut secara bersamaan.
 
-## Konfigurasi
+## Konfigurasi & Upload (Menggunakan WiFiManager)
 
-<!-- 1. Buka file `config.h`.
-2. Ubah `WIFI_SSID` dan `WIFI_PASSWORD` sesuai dengan koneksi Anda.
-3. Ubah `API_URL` dengan alamat IP lokal komputer tempat Next.js berjalan (contoh: `http://192.168.1.10:3000/api/sensor`).
-4. Upload `smart_maggot_box.ino` ke board ESP32 Anda. -->
+Sistem ESP32 ini **sudah tidak lagi menggunakan hardcode WiFi** (Anda tidak perlu menulis SSID dan Password jaringan secara manual di dalam file program). Sistem ini telah terintegrasi dengan library **WiFiManager** sehingga pengaturan WiFi bisa dilakukan secara dinamis layaknya menyambungkan perangkat pintar IoT pintar.
 
-semuanya sudah menggunakan WifiManager
+**Langkah-langkah upload dan menghubungkan ESP32:**
+
+1. Buka folder `esp32` menggunakan Arduino IDE dan buka file `smart_maggot_box.ino`.
+2. Buka file `config.h` hanya jika Anda perlu mengubah konfigurasi koneksi broker MQTT (HiveMQ) atau pengaturan pin. *Tidak perlu mencari variabel WiFi di sini*.
+3. Hubungkan ESP32 ke komputer dengan kabel USB. Pastikan Board (ESP32 Dev Module) dan Port USB sudah terpilih dengan benar.
+4. Klik tombol **Upload** dan tunggu hingga proses compile selesai.
+5. **Mode Access Point (AP)**: Saat ESP32 pertama kali dinyalakan (atau jika WiFi lama tidak ditemukan), ESP32 akan memancarkan sinyal WiFi sendiri.
+6. Gunakan smartphone atau laptop Anda, buka pengaturan WiFi, lalu cari dan hubungkan ke hotspot jaringan bernama **"MaggotBox-Setup"** (atau nama default dari WiFiManager).
+7. **Captive Portal**: Setelah terhubung, layar ponsel Anda biasanya akan otomatis membuka halaman konfigurasi (seperti saat login WiFi publik). Jika tidak terbuka otomatis, buka browser dan akses alamat IP **`192.168.4.1`**.
+8. Klik tombol **"Configure WiFi"**, pilih nama WiFi (SSID) rumah/lokasi Anda dari daftar yang muncul, masukkan password WiFi Anda, lalu klik **Save**.
+9. ESP32 akan merestart otomatis, keluar dari mode AP, dan langsung terhubung ke jaringan internet yang baru saja Anda masukkan.
