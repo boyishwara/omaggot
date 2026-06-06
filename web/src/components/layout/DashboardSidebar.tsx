@@ -17,11 +17,11 @@ type UserProfile = {
 
 const baseLinks = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Guide', href: '/dashboard/guide', icon: BookOpen },
   { name: 'Warning Rules', href: '/dashboard/rules', icon: BellRing },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-  { name: 'Guide', href: '/dashboard/guide', icon: BookOpen },
 ];
 
 function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNavigate?: () => void; profile: UserProfile }) {
