@@ -40,6 +40,8 @@ graph LR
     User -->|Views Dashboard| NextJS
 ```
 
+*Explanation:* This diagram maps out the physical and logical boundaries of the system. In the **Local Environment**, the ESP32 microcontroller interfaces directly with DHT21 sensors to gather climate data, controlling physical actuators (LEDs & Buzzer) based on status changes. Because the ESP32 operates on limited power/compute, it streams data to a **Cloud Infrastructure** layer using the lightweight MQTT protocol via HiveMQ. A Node.js Worker bridges this MQTT stream into our Next.js API, which stores the data securely in Supabase. Finally, the **External** layer shows how end-users interact with the system—either by viewing the Next.js Dashboard or receiving automated webhook alerts pushed through the Telegram API.
+
 ### 2. Data Flow (Sequence)
 This diagram illustrates the chronological step-by-step flow when a sensor reading occurs.
 
@@ -70,6 +72,8 @@ sequenceDiagram
     Worker->>HiveMQ: 9. Publish Status via MQTT
     HiveMQ->>ESP32: 10. Trigger LED & Buzzer state
 ```
+
+*Explanation:* This sequence diagram traces the complete journey of a single sensor reading. It starts on the left when the ESP32 publishes a payload. The HiveMQ broker routes this to our Node.js Worker, which fires an HTTP POST to the Next.js backend. Inside Next.js, business logic executes: it calculates the Heat Index and evaluates the reading against active warning rules. The data is saved to Supabase Postgres. If a rule triggers a Warning or Danger state, Supabase immediately fires a webhook to Telegram to alert farmers. Simultaneously, Supabase's Realtime engine pushes the new data via WebSockets to any admin viewing the Dashboard. Finally, the resulting status is sent back down the chain to the ESP32 so it can trigger local visual/audio alarms (LEDs/Buzzer).
 
 ### 3. Database Schema (ERD)
 This Entity-Relationship Diagram details the relational PostgreSQL database structure hosted on Supabase.
@@ -123,6 +127,8 @@ erDiagram
     }
 ```
 
+*Explanation:* The ERD represents the relational structure of our Supabase PostgreSQL database. At its core is the `sensor_readings` table storing chronological climate data. The `warning_rules` table stores the user-defined thresholds (e.g., "Alert if Temperature > 35"). When a reading violates a rule, a record is generated in the `notifications` table, linking the specific reading and rule together for historical auditing. Separately, the system handles access control via `user_profiles` (which ties into Supabase Auth) and manages alert recipients in the `telegram_subscribers` table.
+
 ---
 
 ## 🧠 Critical Analysis: Why These Technologies?
@@ -151,6 +157,19 @@ Building a reliable IoT system requires bridging the gap between embedded hardwa
 
 ---
 
+## 🌡️ Heat Index (Indeks Kenyamanan)
+
+In the BSF (Black Soldier Fly) cultivation process, it's not just the absolute temperature that matters, but how "hot" the environment feels to the maggots when combined with humidity. This is known as the **Heat Index**. 
+
+The system automatically calculates the Heat Index server-side using a modified Rothfusz formula whenever temperature and humidity readings are received. 
+
+**Calculation Range & Rules:**
+- The formula is only applied when the temperature is **&ge; 26.7 °C** and the humidity is **&ge; 40%**. 
+- If the environmental conditions are below these thresholds, the system defaults the Heat Index to be equal to the current temperature, as the humidity does not significantly amplify the perceived heat.
+- This computed value is then evaluated against user-defined threshold rules (Normal, Warning, Danger) exactly like raw temperature or humidity.
+
+---
+
 ## 👥 Pembagian Roles (Role Distribution & Access Control)
 
 To maintain strict security—especially concerning hardware simulation and alert rule modifications—the system implements a robust Role-Based Access Control (RBAC) mechanism. 
@@ -169,6 +188,63 @@ There are three distinct roles in the system. Here is exactly what they can and 
 | **Trigger Hardware Simulation**| ❌ | ❌ | ✅ | ✅ |
 | **Manage / Remove Subscribers**| ❌ | ❌ | ✅ | ✅ |
 | **Approve / Reject Admins** | ❌ | ❌ | ❌ | ✅ |
+
+### System Use Case Diagram
+
+The following diagram illustrates the functionalities from the perspective of the three primary roles, using standard UML actor-inheritance conventions.
+
+```mermaid
+flowchart LR
+    %% Actors
+    User([User])
+    Admin([Admin])
+    Superadmin([Superadmin])
+
+    %% Inheritance
+    Superadmin -.->|inherits| Admin
+    Admin -.->|inherits| User
+
+    %% System Boundary
+    subgraph O_Maggot_System [O'Maggot Box System]
+        direction TB
+        UC1(View Live Dashboard)
+        UC2(View Reports & Export)
+        UC3(View Warning Rules)
+        
+        UC4(Create/Edit/Delete Rules)
+        UC5(Toggle Rules On/Off)
+        UC6(Delete Sensor Data)
+        UC7(Trigger Test Notifications)
+        UC8(Trigger Hardware Simulation)
+        UC9(Manage Telegram Subscribers)
+        
+        UC10(Approve/Reject Admins)
+    end
+
+    %% User Relations
+    User --> UC1
+    User --> UC2
+    User --> UC3
+
+    %% Admin Relations
+    Admin --> UC4
+    Admin --> UC5
+    Admin --> UC6
+    Admin --> UC7
+    Admin --> UC8
+    Admin --> UC9
+
+    %% Superadmin Relations
+    Superadmin --> UC10
+
+    classDef actor fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    class User,Admin,Superadmin actor;
+```
+
+*Explanation:* 
+- **User (Normal User):** Represents a base-level actor with read-only privileges. They can monitor the dashboard, view historical reports, and see the active rules, but cannot alter the system state.
+- **Admin (Approved):** Inherits all capabilities of the User (indicated by the dashed inheritance arrow) but gains write-access to the system's operational parameters. They can modify environmental thresholds (rules), manage notification subscribers, and trigger hardware tests/simulations to verify the physical alarms.
+- **Superadmin:** The highest-level actor. Inherits all Admin capabilities but holds exclusive authority over user management, specifically the ability to approve or reject pending Admin accounts, ensuring tight security over who controls the system.
 
 ### The "Pending Admin" Workflow (State Diagram)
 
