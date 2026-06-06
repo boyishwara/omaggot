@@ -2,31 +2,43 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X, Users } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils/classnames';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const links = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Warning Rules', href: '/admin/rules', icon: BellRing },
-  { name: 'Reports', href: '/admin/reports', icon: FileText },
-  { name: 'Settings', href: '/admin/settings', icon: Settings },
+type UserProfile = {
+  name: string;
+  role: string;
+  is_approved: boolean;
+};
+
+const baseLinks = [
+  { name: 'Dashboard', href: '/dashboard/dashboard', icon: LayoutDashboard },
+  { name: 'Warning Rules', href: '/dashboard/rules', icon: BellRing },
+  { name: 'Reports', href: '/dashboard/reports', icon: FileText },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNavigate?: () => void; profile: UserProfile }) {
   const router = useRouter();
   const supabase = createClient();
 
+  // Add Users tab if superadmin
+  const links = [...baseLinks];
+  if (profile.role === 'superadmin') {
+    links.push({ name: 'User Management', href: '/dashboard/users', icon: Users });
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/admin/login');
+    router.push('/login');
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <div className="h-[72px] flex items-center px-6 border-b border-slate-800/50">
         <Link href="/" onClick={onNavigate} className="flex items-center space-x-3 group transition-colors">
           <div className="bg-gradient-to-br from-teal-400 to-teal-600 text-white p-2 rounded-lg shadow-md shadow-teal-500/20 group-hover:shadow-teal-500/40 group-hover:-translate-y-0.5 transition-all duration-300">
@@ -34,6 +46,14 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
           </div>
           <span className="font-serif text-xl font-semibold tracking-tight text-slate-100">Smart Maggot</span>
         </Link>
+      </div>
+
+      <div className="px-6 py-4 border-b border-slate-800/50 bg-slate-800/20">
+        <p className="text-slate-100 font-medium">Hello, {profile.name}!</p>
+        <p className="text-xs text-slate-400 mt-1 capitalize">You're a {profile.role}</p>
+        {profile.role === 'admin' && !profile.is_approved && (
+          <p className="text-[10px] text-amber-400 mt-1 font-medium bg-amber-400/10 inline-block px-2 py-0.5 rounded">Pending Approval</p>
+        )}
       </div>
 
       <div className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
@@ -69,11 +89,11 @@ function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: (
           <span>Sign Out</span>
         </button>
       </div>
-    </>
+    </div>
   );
 }
 
-export function AdminSidebar() {
+export function DashboardSidebar({ profile }: { profile: UserProfile }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -81,7 +101,7 @@ export function AdminSidebar() {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 flex-col h-screen shrink-0 sticky top-0 text-slate-400 font-sans shadow-xl shadow-slate-900/20 z-40">
-        <NavContent pathname={pathname} />
+        <NavContent pathname={pathname} profile={profile} />
       </aside>
 
       {/* Mobile Top Bar */}
@@ -125,7 +145,7 @@ export function AdminSidebar() {
               >
                 <X className="h-4 w-4" />
               </button>
-              <NavContent pathname={pathname} onNavigate={() => setMobileOpen(false)} />
+              <NavContent pathname={pathname} onNavigate={() => setMobileOpen(false)} profile={profile} />
             </motion.aside>
           </>
         )}

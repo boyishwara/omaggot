@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -31,17 +31,17 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/admin/login')
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register')
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
 
-  // If user is logged in and trying to access login page, redirect to dashboard
+  // If user is logged in and trying to access auth pages, redirect to dashboard
   if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    return NextResponse.redirect(new URL('/dashboard/dashboard', request.url))
   }
 
-  // If user is not logged in and trying to access an admin route (except login), redirect to login
-  if (!user && isAdminRoute && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/admin/login', request.url))
+  // If user is not logged in and trying to access dashboard routes, redirect to login
+  if (!user && isDashboardRoute) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return supabaseResponse

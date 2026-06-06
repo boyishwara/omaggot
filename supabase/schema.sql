@@ -103,5 +103,34 @@ CREATE POLICY "Allow authenticated read notifications" ON notifications FOR SELE
 CREATE POLICY "Allow authenticated read system_settings" ON system_settings FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Allow authenticated read telegram_subscribers" ON telegram_subscribers FOR SELECT TO authenticated USING (true);
 
+-- ==========================================
+-- USER PROFILES (RBAC)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS user_profiles (
+    id UUID PRIMARY KEY, -- References auth.users(id), but we'll manage it via API/Trigger
+    name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user', -- 'user', 'admin', 'superadmin'
+    is_approved BOOLEAN NOT NULL DEFAULT true, -- true for normal users, false for pending admins
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own profile
+CREATE POLICY "Users can read own profile" ON user_profiles
+    FOR SELECT TO authenticated
+    USING (auth.uid() = id);
+
+-- Superadmins can read all profiles
+CREATE POLICY "Superadmins can read all profiles" ON user_profiles
+    FOR SELECT TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM user_profiles
+            WHERE id = auth.uid() AND role = 'superadmin'
+        )
+    );
+
 -- Backend API and MQTT Worker will use the Service Role Key, which bypasses RLS automatically.
 -- This ensures the public Anon key cannot insert, update, or delete records.

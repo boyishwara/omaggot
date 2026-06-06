@@ -180,6 +180,26 @@ erDiagram
 - **Interactive Telegram Bot:** Users can message the bot `/start` to see instructions, `/subscribe` to opt into real-time alerts, `/status` to fetch current readings, and `/unsubscribe` to opt out. Admin dashboard also allows manual subscriber management.
 - **Dynamic Wi-Fi Configuration:** Device uses WiFiManager to spin up a local captive portal for on-the-fly network changes without requiring firmware reflashes.
 
+## Authentication & Roles (RBAC)
+
+The system features a complete Role-Based Access Control implementation:
+- **User (Normal):** Read-only access to monitoring, rules, and reports. Can export data.
+- **Admin:** Can create/edit rules, trigger test simulations, and delete report data. Requires approval by a Superadmin before features unlock.
+- **Superadmin:** Full access to everything, plus a dedicated User Management tab to approve or reject pending Admins.
+
+> [!IMPORTANT]  
+> **Creating the first Superadmin:**  
+> For security, you cannot register directly as a Superadmin via the UI. You must register normally, then promote your account via the database:
+> 1. Register an account at `http://localhost:3000/register` (select either User or Admin).
+> 2. Open the Supabase Dashboard SQL Editor.
+> 3. Run the following query, replacing the email with yours:
+>    ```sql
+>    UPDATE user_profiles 
+>    SET role = 'superadmin', is_approved = true 
+>    WHERE id = (SELECT id FROM auth.users WHERE email = 'your@email.com');
+>    ```
+> 4. Refresh your dashboard to see the new Superadmin privileges and the User Management tab.
+
 ## Step-by-Step Setup Guide
 
 ### Phase 1: Database Setup (Supabase)

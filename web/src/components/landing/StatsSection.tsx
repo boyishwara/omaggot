@@ -14,7 +14,7 @@ export function StatsSection() {
             Join other forward-thinking breeders who rely on Smart Maggot Box for consistent, high-yield Black Soldier Fly production.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/admin/login" className="bg-white text-teal-700 hover:bg-slate-50 hover:text-teal-800 font-semibold text-lg px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+            <a href="/login" className="bg-white text-teal-700 hover:bg-slate-50 hover:text-teal-800 font-semibold text-lg px-8 py-3.5 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
               Access Dashboard
             </a>
             <p className="text-sm text-teal-100/80 mt-4 sm:mt-0 font-medium">Free for academic projects.</p>

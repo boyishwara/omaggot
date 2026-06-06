@@ -8,6 +8,7 @@ import {
   Download, Trash2, CalendarDays, Activity, Thermometer,
   Droplets, BellRing, ChevronDown, X, AlertTriangle, BarChart3,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── types ───────────────────────────────────────────────────────────────────
 type ExportFormat = 'csv' | 'tsv' | 'xlsx' | 'json';
@@ -230,6 +231,8 @@ export default function ReportsPage() {
   const [toDate, setToDate] = useState(toDateStr(new Date()));
   const [stats, setStats] = useState<Stats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const supabase = createClient();
 
   // Export modal
   const [exportOpen, setExportOpen] = useState(false);
@@ -249,6 +252,11 @@ export default function ReportsPage() {
   const fetchStats = useCallback(async () => {
     setLoadingStats(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
+        setUserProfile(profile);
+      }
       const params = new URLSearchParams({ limit: '5000' });
       if (fromDate) params.set('from', `${fromDate}T00:00:00Z`);
       if (toDate) params.set('to', `${toDate}T23:59:59Z`);
@@ -325,9 +333,11 @@ export default function ReportsPage() {
           <p className="text-slate-500 mt-0.5 text-xs sm:text-sm">Analyse, export, and manage historical sensor data</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="secondary" onClick={() => setDeleteOpen(true)} className="flex items-center gap-2 text-sm text-red-600 border-red-200 hover:bg-red-50">
-            <Trash2 className="h-4 w-4" />Delete
-          </Button>
+          {userProfile && (userProfile.role === 'admin' && userProfile.is_approved || userProfile.role === 'superadmin') && (
+            <Button variant="secondary" onClick={() => setDeleteOpen(true)} className="flex items-center gap-2 text-sm text-red-600 border-red-200 hover:bg-red-50">
+              <Trash2 className="h-4 w-4" />Delete
+            </Button>
+          )}
           <Button variant="primary" onClick={() => setExportOpen(true)} className="flex items-center gap-2 text-sm">
             <Download className="h-4 w-4" />Export
           </Button>

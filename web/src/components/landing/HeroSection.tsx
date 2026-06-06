@@ -24,7 +24,7 @@ export function HeroSection() {
             Smart Maggot Box uses advanced IoT sensors to monitor temperature and humidity in real-time, ensuring the perfect environment for Black Soldier Fly larvae growth.
           </p>
           <div className="flex items-center space-x-4">
-            <a href="/admin/dashboard" className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3.5 rounded-xl text-body-md font-medium hover:from-teal-600 hover:to-teal-700 transition-all duration-300 shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 hover:-translate-y-1">
+            <a href="/dashboard/dashboard" className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3.5 rounded-xl text-body-md font-medium hover:from-teal-600 hover:to-teal-700 transition-all duration-300 shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 hover:-translate-y-1">
               View Dashboard
             </a>
           </div>

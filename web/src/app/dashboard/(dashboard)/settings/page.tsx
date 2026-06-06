@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Send, Activity, Server, Smartphone, Users, BellRing, Database, Wifi, UserX } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { BlockedPage } from '@/components/ui/BlockedPage';
 
 // ─── Subscriber row ───────────────────────────────────────────────────────
 function SubscriberRow({ sub, onUnsubscribe }: { sub: any; onUnsubscribe: (id: string) => void }) {
@@ -55,10 +56,17 @@ export default function SettingsPage() {
   const [systemStats, setSystemStats] = useState({ sensorCount: 0, alertCount: 0, activeRules: 0 });
   const [lastSeen, setLastSeen] = useState<string>('Unknown');
   const [loadingStats, setLoadingStats] = useState(true);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const fetchAll = useCallback(async () => {
     setLoadingStats(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
+        setUserProfile(profile);
+      }
+
       const [subRes, sensorRes, alertRes, rulesRes, latestRes] = await Promise.all([
         (supabase as any).from('telegram_subscribers').select('*').order('created_at', { ascending: false }),
         (supabase as any).from('sensor_readings').select('id', { count: 'exact', head: true }),
@@ -105,6 +113,10 @@ export default function SettingsPage() {
   };
 
   const activeCount = subscribers.filter((s) => s.is_active).length;
+
+  if (userProfile && (userProfile.role === 'user' || (userProfile.role === 'admin' && !userProfile.is_approved))) {
+    return <BlockedPage title="Settings Blocked" message="You need approved admin privileges to access settings." />;
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-10 space-y-6">

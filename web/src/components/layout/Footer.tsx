@@ -16,7 +16,7 @@ export function Footer() {
         </p>
         
         <div className="flex space-x-6 text-sm font-medium">
-          <a href="/admin/login" className="hover:text-teal-400 transition-colors">Admin Login</a>
+          <a href="/login" className="hover:text-teal-400 transition-colors">Admin Login</a>
           <a href="https://github.com/boyishwara" target="_blank" rel="noreferrer" className="hover:text-teal-400 transition-colors">GitHub</a>
         </div>
       </div>

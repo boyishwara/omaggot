@@ -48,7 +48,7 @@ export function Navbar({ className }: { className?: string }) {
             <div className="h-10 w-28 bg-slate-100 animate-pulse rounded-lg"></div>
           ) : user ? (
             <div className="flex items-center space-x-4">
-              <a href="/admin/dashboard" className="text-body-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">
+              <a href="/dashboard/dashboard" className="text-body-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">
                 Dashboard
               </a>
               <button onClick={handleLogout} className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-body-sm font-medium hover:bg-slate-800 transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5">
@@ -58,10 +58,10 @@ export function Navbar({ className }: { className?: string }) {
             </div>
           ) : (
             <div className="flex items-center space-x-4">
-              <a href="/admin/login" className="text-body-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">
+              <a href="/login" className="text-body-sm font-medium text-slate-600 hover:text-teal-600 transition-colors">
                 Sign in
               </a>
-              <a href="/admin/dashboard" className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-5 py-2.5 rounded-lg text-body-sm font-medium hover:from-teal-600 hover:to-teal-700 transition-all duration-300 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:-translate-y-0.5">
+              <a href="/dashboard/dashboard" className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-5 py-2.5 rounded-lg text-body-sm font-medium hover:from-teal-600 hover:to-teal-700 transition-all duration-300 shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:-translate-y-0.5">
                 Go to Console
               </a>
             </div>
