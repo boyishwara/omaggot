@@ -36,7 +36,7 @@ export default function GuidePage() {
                 <li><strong>Dashboard:</strong> View live sensor readings and recent alerts.</li>
                 <li><strong>Reports:</strong> Export historical data and analyze trends over time.</li>
                 <li><strong>Warning Rules:</strong> Set up automated alerts for when environmental factors go out of range.</li>
-                <li><strong>Settings:</strong> Manage system health, test notifications, and view active Telegram subscribers.</li>
+                <li><strong>Settings:</strong> Manage test notifications, and view active Telegram subscribers.</li>
               </ul>
             </CardContent>
           </Card>
@@ -84,8 +84,8 @@ export default function GuidePage() {
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li><strong>Rule Conditions:</strong> You can define conditions (e.g., Temperature {'>'} 35°C).</li>
-                <li><strong>Severity Levels:</strong> Alerts are classified as INFO, WARNING, or DANGER.</li>
-                <li><strong>Telegram Integration:</strong> DANGER alerts are immediately pushed to your Telegram group or personal bot chat if subscribed.</li>
+                <li><strong>Severity Levels:</strong> Alerts are classified as NORMAL, WARNING, or DANGER.</li>
+                <li><strong>Telegram Integration:</strong> WARNING and DANGER alerts are immediately pushed to your Telegram group or personal bot chat if subscribed.</li>
               </ul>
               <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded-lg text-rose-800 text-xs">
                 <strong>Tip:</strong> Always ensure you have subscribed to the Telegram Bot to receive critical warnings instantly.
