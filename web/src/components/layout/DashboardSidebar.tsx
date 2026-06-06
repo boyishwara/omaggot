@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X, Users, User } from 'lucide-react';
+import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X, Users, User, BookOpen } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils/classnames';
 import { createClient } from '@/lib/supabase/client';
@@ -21,6 +21,7 @@ const baseLinks = [
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Guide', href: '/dashboard/guide', icon: BookOpen },
 ];
 
 function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNavigate?: () => void; profile: UserProfile }) {
