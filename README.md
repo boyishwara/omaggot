@@ -241,15 +241,15 @@ flowchart LR
         UC_Approve(Approve/Reject Admins)
 
         %% Include relationships (Mandatory)
-        UC_Dash -.->|<<include>>| UC_Auth
-        UC_Rep -.->|<<include>>| UC_Auth
-        UC_ViewRule -.->|<<include>>| UC_Auth
+        UC_Dash -.->|"«include»"| UC_Auth
+        UC_Rep -.->|"«include»"| UC_Auth
+        UC_ViewRule -.->|"«include»"| UC_Auth
         
         %% Extend relationships (Optional behavior)
-        UC_Exp -.->|<<extend>>| UC_Rep
-        UC_MgmtRule -.->|<<extend>>| UC_ViewRule
-        UC_TestNotif -.->|<<extend>>| UC_MgmtRule
-        UC_Approve -.->|<<extend>>| UC_UserMgmt
+        UC_Exp -.->|"«extend»"| UC_Rep
+        UC_MgmtRule -.->|"«extend»"| UC_ViewRule
+        UC_TestNotif -.->|"«extend»"| UC_MgmtRule
+        UC_Approve -.->|"«extend»"| UC_UserMgmt
     end
 
     %% Actor to Use Case Relationships
@@ -272,8 +272,8 @@ flowchart LR
 
 *Explanation:* 
 - **Actors & Inheritance:** We use standard UML actor generalization (`--|>`). The `Superadmin` inherits everything from `Admin`, and `Admin` inherits everything from `User`.
-- **`<<include>>` (Mandatory):** Viewing the Dashboard, Reports, or Rules strictly requires the user to **Authenticate / Login** first. The base use cases cannot execute without it.
-- **`<<extend>>` (Optional):** Extending use cases provide optional functionality to a base use case. For example, while viewing reports, a user can optionally **Export Data to CSV**. While viewing rules, an Admin can optionally **Manage Rules** (Create/Edit/Toggle). While managing users, a Superadmin can optionally **Approve/Reject Admins**.
+- **`«include»` (Mandatory):** Viewing the Dashboard, Reports, or Rules strictly requires the user to **Authenticate / Login** first. The base use cases cannot execute without it.
+- **`«extend»` (Optional):** Extending use cases provide optional functionality to a base use case. For example, while viewing reports, a user can optionally **Export Data to CSV**. While viewing rules, an Admin can optionally **Manage Rules** (Create/Edit/Toggle). While managing users, a Superadmin can optionally **Approve/Reject Admins**.
 - **Roles:**
   - **User (Normal User):** Has read-only capabilities (Dashboard, Reports, Rules).
   - **Admin (Approved):** Gains write-access to the system state (Managing rules, deleting data, testing hardware/notifications).
