@@ -63,9 +63,9 @@ graph TD
         GND_B[GND / -]
     end
 
-    3V3 -->|Kabel Merah| VCC_DHT
-    D4 -->|Kabel Data| DATA_DHT
-    GND1 -->|Kabel Hitam| GND_DHT
+    3V3 -->|VCC / +| VCC_DHT
+    D4 -->|Data| DATA_DHT
+    GND1 -->|GND / -| GND_DHT
 
     D18 -->|Resistor 220Ω| ANODE_G
     GND2 --> CATHODE_G
@@ -73,16 +73,16 @@ graph TD
     D19 -->|Resistor 220Ω| ANODE_R
     GND3 --> CATHODE_R
 
-    D21 -->|Kabel Positif| VCC_B
+    D21 -->|VCC / +| VCC_B
     GND4 --> GND_B
 ```
 
 ### Penjelasan Pemasangan Kabel (Wiring Guide)
 
 **1. Sensor Suhu & Kelembaban (DHT21)**
-- **VCC (Pin/Kabel Merah)**: Dihubungkan ke pin **3V3** pada ESP32. Pin ini memberikan daya 3.3 Volt yang dibutuhkan sensor DHT21 untuk beroperasi.
-- **GND (Pin/Kabel Hitam)**: Dihubungkan ke salah satu pin **GND (Ground)** pada ESP32. Ini berfungsi sebagai kutub negatif jalur kembalinya arus listrik.
-- **DATA (Pin/Kabel Data)**: Dihubungkan ke pin **GPIO 4 (D4)** pada ESP32. Jalur ini digunakan sensor untuk mengirimkan data pembacaan suhu dan kelembaban digital agar dapat dibaca oleh ESP32.
+- **VCC (Kutub Positif / +)**: Dihubungkan ke pin **3V3** pada ESP32. Pin ini memberikan daya 3.3 Volt yang dibutuhkan sensor DHT21 untuk beroperasi.
+- **GND (Kutub Negatif / -)**: Dihubungkan ke salah satu pin **GND (Ground)** pada ESP32. Ini berfungsi sebagai kutub negatif jalur kembalinya arus listrik.
+- **DATA (Pin Data)**: Dihubungkan ke pin **GPIO 4 (D4)** pada ESP32. Jalur ini digunakan sensor untuk mengirimkan data pembacaan suhu dan kelembaban digital agar dapat dibaca oleh ESP32.
 
 **2. Indikator LED Hijau (Status Aman/Normal)**
 - **Anoda (Kaki Panjang / +)**: Dihubungkan ke pin **GPIO 18 (D18)** pada ESP32 **melalui sebuah Resistor 220Ω**. Resistor ini sangat penting karena berfungsi membatasi arus listrik dari pin ESP32 agar LED tidak terbakar/putus akibat arus yang terlalu besar.
