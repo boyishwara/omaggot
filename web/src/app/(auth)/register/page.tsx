@@ -2,11 +2,15 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,6 +20,17 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8 || !/\d/.test(password)) {
+      setError('Password must be at least 8 characters and contain at least one number');
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/auth/register', {
@@ -92,18 +107,50 @@ export default function RegisterPage() {
             
             <div className="space-y-2.5">
               <label className="text-sm font-semibold text-slate-700 block">Password</label>
-              <input 
-                id="password"
-                name="password"
-                type="password" 
-                autoComplete="new-password"
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all placeholder:text-slate-400"
-              />
+              <div className="relative">
+                <input 
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'} 
+                  autoComplete="new-password"
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all placeholder:text-slate-400 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <label className="text-sm font-semibold text-slate-700 block">Confirm Password</label>
+              <div className="relative">
+                <input 
+                  id="confirm-password"
+                  name="confirm-password"
+                  type={showConfirmPassword ? 'text' : 'password'} 
+                  autoComplete="new-password"
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all placeholder:text-slate-400 pr-12"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                >
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2.5">

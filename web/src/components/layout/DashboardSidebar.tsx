@@ -61,7 +61,7 @@ function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNav
         <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 px-3">Management</div>
         {links.map((link, i) => {
           const Icon = link.icon;
-          const isActive = pathname.startsWith(link.href);
+          const isActive = link.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(link.href);
           return (
             <motion.div key={link.name} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
               <Link

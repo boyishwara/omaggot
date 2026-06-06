@@ -111,27 +111,25 @@ export default function DashboardClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Simulation selector — only for approved admins and superadmins */}
-          {userProfile && (userProfile.role === 'user') ? null : (
-            <ApprovalGate
-              allowed={!userProfile || (userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
-              message="Needs Superadmin approval to use test simulation."
-            >
-              <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">
-                <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Test:</span>
-                <select
-                  value={simulationStatus}
-                  onChange={(e) => handleSimulate(e.target.value)}
-                  disabled={isSimulating}
-                  className="text-sm bg-white border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-teal-500 outline-none"
-                >
-                  <option value="NONE">Normal</option>
-                  <option value="WARNING">Warning</option>
-                  <option value="DANGER">Danger</option>
-                </select>
-              </div>
-            </ApprovalGate>
-          )}
+          {/* Simulation selector — gated for users and pending admins */}
+          <ApprovalGate
+            allowed={!userProfile || (userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
+            message={userProfile?.role === 'user' ? "Only Admins can use test simulation." : "Needs Superadmin approval to use test simulation."}
+          >
+            <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">
+              <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Test:</span>
+              <select
+                value={simulationStatus}
+                onChange={(e) => handleSimulate(e.target.value)}
+                disabled={isSimulating}
+                className="text-sm bg-white border border-slate-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-teal-500 outline-none"
+              >
+                <option value="NONE">Normal</option>
+                <option value="WARNING">Warning</option>
+                <option value="DANGER">Danger</option>
+              </select>
+            </div>
+          </ApprovalGate>
 
           {/* Online indicator */}
           <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/80">

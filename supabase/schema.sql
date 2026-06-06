@@ -128,15 +128,5 @@ CREATE POLICY "Users can update own profile" ON user_profiles
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
--- Superadmins can read all profiles
-CREATE POLICY "Superadmins can read all profiles" ON user_profiles
-    FOR SELECT TO authenticated
-    USING (
-        EXISTS (
-            SELECT 1 FROM user_profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
-
 -- Backend API and MQTT Worker will use the Service Role Key, which bypasses RLS automatically.
 -- This ensures the public Anon key cannot insert, update, or delete records.

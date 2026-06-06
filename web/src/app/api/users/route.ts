@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
@@ -15,7 +15,8 @@ export async function GET() {
     }
 
     // Fetch all user profiles except superadmins
-    const { data: users, error } = await supabase
+    const adminSupabase = createAdminClient();
+    const { data: users, error } = await adminSupabase
       .from('user_profiles')
       .select('*')
       .neq('role', 'superadmin')

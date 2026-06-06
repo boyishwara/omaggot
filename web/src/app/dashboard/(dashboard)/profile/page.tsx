@@ -57,6 +57,7 @@ export default function ProfilePage() {
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!window.confirm('Are you sure you want to change your email address?')) return;
     setLoadingEmail(true);
     const { error } = await supabase.auth.updateUser({ email });
     if (error) showMessage('error', error.message);
@@ -66,6 +67,7 @@ export default function ProfilePage() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!window.confirm('Are you sure you want to change your password?')) return;
     setLoadingPassword(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) showMessage('error', error.message);
@@ -96,7 +98,7 @@ export default function ProfilePage() {
   if (!authUser) return null;
 
   const isApproved = profile?.is_approved ?? true;
-  const role: string = profile?.role ?? 'user';
+  const role: string = profile?.role ?? authUser.user_metadata?.role ?? 'user';
   const isPendingAdmin = role === 'admin' && !isApproved;
 
   return (
