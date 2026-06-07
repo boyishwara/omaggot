@@ -81,12 +81,25 @@ export async function POST(request: Request) {
       if (error || !latestReading) {
         replyMessage = '⚠️ Unable to fetch the latest sensor reading. Is the device online?';
       } else {
-        const timeAgo = Math.floor((new Date().getTime() - new Date(latestReading.recorded_at).getTime()) / 1000 / 60);
+        const date = new Date(latestReading.recorded_at);
+        const now = new Date();
+        const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+        const diffMin = Math.floor(diffSec / 60);
+        const diffHour = Math.floor(diffMin / 60);
+        const diffDay = Math.floor(diffHour / 24);
+        
+        let timeString = '';
+        if (diffSec < 60) timeString = `${diffSec} seconds ago`;
+        else if (diffMin < 60) timeString = `${diffMin} minutes ago`;
+        else if (diffHour < 24) timeString = `${diffHour} hours ago`;
+        else if (diffDay < 7) timeString = `${diffDay} days ago`;
+        else timeString = `on ${date.toLocaleDateString()}`;
+
         replyMessage = `📊 *Current Status*\n\n` +
                        `🌡️ *Temperature:* ${latestReading.temperature}°C\n` +
                        `💧 *Humidity:* ${latestReading.humidity}%\n` +
                        `🔥 *Heat Index:* ${latestReading.heat_index}°C\n\n` +
-                       `_Last updated: ${timeAgo === 0 ? 'Just now' : `${timeAgo} mins ago`}_`;
+                       `_Last updated: ${timeString}_`;
       }
       }
     } else {

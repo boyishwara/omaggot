@@ -53,6 +53,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  const isApiRoute = pathname.startsWith('/api')
+
+  // Protect API routes from public access
+  if (!user && isApiRoute) {
+    // Allow auth and webhook routes
+    if (pathname.startsWith('/api/auth') || pathname.startsWith('/api/webhooks')) {
+      return supabaseResponse
+    }
+    // Allow POST to /api/sensor (used by ESP32, which authenticates via API_KEY)
+    if (pathname === '/api/sensor' && request.method === 'POST') {
+      return supabaseResponse
+    }
+    
+    // Block other API access (like GET /api/sensor, etc.)
+    return NextResponse.json({ success: false, error: 'Unauthorized API Access' }, { status: 401 })
+  }
+
   return supabaseResponse
 }
 
