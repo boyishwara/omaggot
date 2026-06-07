@@ -64,6 +64,10 @@ export default function GuidePage() {
                   <strong className="text-slate-800 block mb-1">Humidity (%)</strong>
                   Optimal range is 60% - 70%. High humidity risks mold, while low humidity can dehydrate the larvae.
                 </div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <strong className="text-slate-800 block mb-1">Heat Index</strong>
+                  Calculated from a combination of temperature and humidity. It provides a measure of the "real heat stress" experienced by the larvae, and is used to trigger tiered warning levels.
+                </div>
               </div>
             </CardContent>
           </Card>

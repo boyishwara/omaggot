@@ -60,7 +60,7 @@ export function Navbar({ className }: { className?: string }) {
           ) : user ? (
             <>
               <a
-                href="/dashboard/dashboard"
+                href="/dashboard"
                 className="text-sm font-semibold text-slate-600 hover:text-teal-600 transition-colors px-3 py-2 rounded-lg hover:bg-teal-50"
               >
                 Dashboard
