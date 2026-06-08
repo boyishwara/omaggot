@@ -95,10 +95,28 @@ export async function POST(request: Request) {
         else if (diffDay < 7) timeString = `${diffDay} days ago`;
         else timeString = `on ${date.toLocaleDateString()}`;
 
+        // Fetch recent production stats (last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const { data: prodData } = await supabase
+          .from('production_records')
+          .select('pakan_kg, maggot_kg')
+          .gte('recorded_at', sevenDaysAgo.toISOString());
+
+        let totalPakan = 0;
+        let totalMaggot = 0;
+        if (prodData) {
+          totalPakan = prodData.reduce((acc: any, curr: any) => acc + Number(curr.pakan_kg || 0), 0);
+          totalMaggot = prodData.reduce((acc: any, curr: any) => acc + Number(curr.maggot_kg || 0), 0);
+        }
+
         replyMessage = `📊 *Current Status*\n\n` +
                        `🌡️ *Temperature:* ${latestReading.temperature}°C\n` +
                        `💧 *Humidity:* ${latestReading.humidity}%\n` +
                        `🔥 *Heat Index:* ${latestReading.heat_index}°C\n\n` +
+                       `📈 *Production (Last 7 Days):*\n` +
+                       `🌾 Feed Used: ${totalPakan.toFixed(2)} kg\n` +
+                       `🐛 Maggot Harvested: ${totalMaggot.toFixed(2)} kg\n\n` +
                        `_Last updated: ${timeString}_`;
       }
       }

@@ -134,6 +134,14 @@ erDiagram
         TIMESTAMPTZ updated_at
     }
 
+    production_records {
+        BIGINT id PK
+        DECIMAL pakan_kg
+        DECIMAL maggot_kg
+        TIMESTAMPTZ recorded_at
+        UUID recorded_by FK
+    }
+
     telegram_subscribers {
         UUID id PK
         TEXT chat_id
@@ -145,7 +153,7 @@ erDiagram
     }
 ```
 
-Explanation: The ERD represents the relational structure of our Supabase PostgreSQL database. At its core is the `sensor_readings` table storing chronological climate data. The `warning_rules` table stores the user-defined thresholds (e.g., "Alert if Temperature > "). When a reading violates a rule, a record is generated in the `notifications` table, linking the specific reading and rule together for historical auditing. Separately, the system handles access control via `user_profiles` (which ties into Supabase Auth) and manages alert recipients in the `telegram_subscribers` table.
+Explanation: The ERD represents the relational structure of our Supabase PostgreSQL database. At its core is the `sensor_readings` table storing chronological climate data. The `warning_rules` table stores the user-defined thresholds (e.g., "Alert if Temperature > "). When a reading violates a rule, a record is generated in the `notifications` table, linking the specific reading and rule together for historical auditing. The `production_records` table stores manual inputs for feed (pakan) and harvested maggots, which are used to generate AI-driven insights like FCR and Daily Growth Rate. Separately, the system handles access control via `user_profiles` (which ties into Supabase Auth) and manages alert recipients in the `telegram_subscribers` table.
 
 ---
 
@@ -304,6 +312,7 @@ There are three distinct roles in the system. Here is exactly what they can and 
 | View Reports & Export Data| âœ… | âœ… | âœ… | âœ… |
 | View Warning Rules | âœ… | âœ… | âœ… | âœ… |
 | Create / Edit / Delete Rules| âŒ | âŒ | âœ… | âœ… |
+| Input Production Data (Feed/Maggot)| âŒ | âŒ | âœ… | âœ… |
 | Toggle Rules On/Off | âŒ | âŒ | âœ… | âœ… |
 | Delete Sensor Data (Reports)| âŒ | âŒ | âœ… | âœ… |
 | Trigger Test Notifications | âŒ | âŒ | âœ… | âœ… |

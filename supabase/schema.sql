@@ -55,6 +55,7 @@ BEGIN;
 COMMIT;
 ALTER PUBLICATION supabase_realtime ADD TABLE sensor_readings;
 ALTER PUBLICATION supabase_realtime ADD TABLE notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE production_records;
 
 -- Pengaturan global sistem
 CREATE TABLE system_settings (
@@ -68,7 +69,7 @@ INSERT INTO system_settings (key, value) VALUES
   ('email_notifications_enabled', 'false'),
   ('admin_email', ''),
   ('device_id', 'esp32-001'),
-  ('system_name', 'O'Maggot Box'),
+  ('system_name', 'O''Maggot Box'),
   ('simulation_status', 'NONE');
 
 -- ==========================================
@@ -95,6 +96,7 @@ ALTER TABLE warning_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE telegram_subscribers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE production_records ENABLE ROW LEVEL SECURITY;
 
 -- Allow read access to authenticated users only
 CREATE POLICY "Allow authenticated read sensor_readings" ON sensor_readings FOR SELECT TO authenticated USING (true);
@@ -102,6 +104,7 @@ CREATE POLICY "Allow authenticated read warning_rules" ON warning_rules FOR SELE
 CREATE POLICY "Allow authenticated read notifications" ON notifications FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Allow authenticated read system_settings" ON system_settings FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Allow authenticated read telegram_subscribers" ON telegram_subscribers FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow authenticated read production_records" ON production_records FOR SELECT TO authenticated USING (true);
 
 -- ==========================================
 -- USER PROFILES (RBAC)
@@ -130,3 +133,16 @@ CREATE POLICY "Users can update own profile" ON user_profiles
 
 -- Backend API and MQTT Worker will use the Service Role Key, which bypasses RLS automatically.
 -- This ensures the public Anon key cannot insert, update, or delete records.
+
+-- ==========================================
+-- PRODUCTION RECORDS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS production_records (
+  id BIGSERIAL PRIMARY KEY,
+  pakan_kg DECIMAL(10,2) NOT NULL DEFAULT 0,
+  maggot_kg DECIMAL(10,2) NOT NULL DEFAULT 0,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_by UUID REFERENCES user_profiles(id) ON DELETE SET NULL
+);
+CREATE INDEX idx_production_recorded_at ON production_records(recorded_at DESC);
+ALTER TABLE production_records REPLICA IDENTITY FULL;

@@ -29,6 +29,13 @@ interface Stats {
   dangerCount: number;
   peakTempTime: string;
   peakHumTime: string;
+  
+  // Production insights
+  totalPakan: number;
+  totalMaggot: number;
+  fcr: number;
+  dailyGrowthRate: number;
+  daysInPeriod: number;
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -271,6 +278,21 @@ export default function ReportsPage() {
       const peakHumReading = readings.reduce((a, b) => a.humidity > b.humidity ? a : b);
 
       const bySeverity = (s: string) => readings.filter((r) => r.status === s).length;
+      
+      // Fetch production data
+      const prodRes = await fetch(`/api/production?${params}`);
+      const prodJson = await prodRes.json();
+      const prodData: any[] = prodJson.success ? prodJson.data : [];
+      
+      const totalPakan = prodData.reduce((acc, r) => acc + Number(r.pakan_kg || 0), 0);
+      const totalMaggot = prodData.reduce((acc, r) => acc + Number(r.maggot_kg || 0), 0);
+      
+      // Calculate days in period
+      const fDate = fromDate ? new Date(fromDate) : new Date(readings[readings.length - 1]?.recorded_at || Date.now());
+      const tDate = toDate ? new Date(toDate) : new Date(readings[0]?.recorded_at || Date.now());
+      const diffTime = Math.abs(tDate.getTime() - fDate.getTime());
+      const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
       setStats({
         count: readings.length,
         avgTemp: temps.reduce((a, b) => a + b, 0) / temps.length,
@@ -285,6 +307,11 @@ export default function ReportsPage() {
         dangerCount: bySeverity('DANGER'),
         peakTempTime: new Date(peakTempReading.recorded_at).toLocaleString(),
         peakHumTime: new Date(peakHumReading.recorded_at).toLocaleString(),
+        totalPakan,
+        totalMaggot,
+        fcr: totalMaggot > 0 ? (totalPakan / totalMaggot) : 0,
+        dailyGrowthRate: totalMaggot / diffDays,
+        daysInPeriod: diffDays
       });
     } finally {
       setLoadingStats(false);
@@ -388,6 +415,9 @@ export default function ReportsPage() {
               <CardTitle className="flex items-center gap-2 text-base"><BarChart3 className="h-4 w-4 text-teal-500" />Period Summary</CardTitle>
               <button onClick={fetchStats} className="text-xs text-teal-600 hover:text-teal-700 font-semibold">↻ Refresh</button>
             </div>
+            <p className="text-xs text-slate-500 mt-2 font-normal">
+              This summary reflects sensor and production data collected from the selected date range below. Averages, peaks, and growth rates are calculated over this specific period to provide accurate insights.
+            </p>
           </CardHeader>
           <CardContent>
             {loadingStats ? (
@@ -419,6 +449,38 @@ export default function ReportsPage() {
                   <StatusBar label="Normal" count={stats.normalCount} total={stats.count} color="bg-teal-500" />
                   <StatusBar label="Warning" count={stats.warningCount} total={stats.count} color="bg-amber-400" />
                   <StatusBar label="Danger" count={stats.dangerCount} total={stats.count} color="bg-red-500" />
+                </div>
+
+                {/* AI Insights Card */}
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mt-4 space-y-3">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-indigo-500" />
+                    Production & Climate Insights
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                    <MiniStat label="Total Feed" value={`${stats.totalPakan.toFixed(2)} kg`} color="text-indigo-700" />
+                    <MiniStat label="Total Maggot" value={`${stats.totalMaggot.toFixed(2)} kg`} color="text-indigo-700" />
+                    <MiniStat label="Est. FCR" value={stats.fcr > 0 ? stats.fcr.toFixed(2) : '-'} sub="Ideal: 1.5 - 2.5" color={stats.fcr >= 1.5 && stats.fcr <= 2.5 ? "text-teal-600" : "text-amber-600"} />
+                    <MiniStat label="Daily Growth" value={`${stats.dailyGrowthRate.toFixed(2)} kg/day`} sub={`Over ${stats.daysInPeriod} days`} color="text-indigo-700" />
+                  </div>
+
+                  <div className="space-y-2 text-sm text-slate-600">
+                    <p>
+                      <strong>Feed Conversion Ratio (FCR):</strong> {stats.fcr === 0 ? "Not enough production data to calculate." : `An FCR of ${stats.fcr.toFixed(2)} means it took ${stats.fcr.toFixed(2)} kg of feed to produce 1 kg of maggot.`}
+                      {stats.fcr > 0 && (stats.fcr < 1.5 || stats.fcr > 2.5) && " This is outside the typical ideal range (1.5-2.5). Check feed quality or environmental stress."}
+                    </p>
+                    <p>
+                      <strong>Daily Growth Rate:</strong> Average harvest of {stats.dailyGrowthRate.toFixed(2)} kg per day. 
+                      {stats.dailyGrowthRate < 0.1 && stats.totalMaggot > 0 && " If the growth curve flattens quickly despite being small, check nutritional value of the feed or environmental factors."}
+                    </p>
+                    <p>
+                      <strong>Climate Impact:</strong> Average conditions were {stats.avgTemp.toFixed(1)}°C and {stats.avgHum.toFixed(1)}% RH. 
+                      {(stats.avgTemp > 30 || stats.avgHum < 40) && <span className="text-rose-600 font-medium"> Warning: Average temperature is high or humidity is low. Maggots may be stressed, eating less, or feed media may be drying out too quickly.</span>}
+                      {(stats.avgTemp < 24) && <span className="text-amber-600 font-medium"> Warning: Average temperature is low. Metabolism slows down, reducing feed intake and extending the growth cycle.</span>}
+                      {(stats.avgTemp >= 24 && stats.avgTemp <= 30 && stats.avgHum >= 40 && stats.avgHum <= 75) && <span className="text-teal-600 font-medium"> Conditions were highly optimal for appetite and rapid growth.</span>}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

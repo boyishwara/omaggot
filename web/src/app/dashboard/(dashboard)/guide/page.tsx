@@ -128,6 +128,28 @@ export default function GuidePage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Production & Insights */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+          <Card className="h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5 text-indigo-500" />
+                Production & Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-slate-600 text-sm leading-relaxed">
+              <p>
+                Admins and Superadmins can manually record <strong>Feed (Pakan)</strong> and <strong>Maggot Harvests</strong> from the Dashboard. The Reports page will calculate several AI-driven insights:
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li><strong>Feed Conversion Ratio (FCR):</strong> Calculates how much feed is required to produce 1 kg of maggot. An ideal FCR is between 1.5 and 2.5.</li>
+                <li><strong>Daily Growth Rate:</strong> Monitors the daily harvest average. If the curve flattens quickly, the system will alert you to check nutrition and environmental factors.</li>
+                <li><strong>Climate Impact:</strong> Automatically correlates average temperature and humidity during the period with feed consumption and growth rates, providing actionable warnings if maggots are too stressed to eat.</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );
