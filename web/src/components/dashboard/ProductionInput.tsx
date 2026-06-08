@@ -8,6 +8,7 @@ import { Leaf, PlusCircle } from 'lucide-react';
 export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAdd: () => void }) {
   const [pakanKg, setPakanKg] = useState('');
   const [maggotKg, setMaggotKg] = useState('');
+  const [recordedAt, setRecordedAt] = useState(() => new Date().toISOString().slice(0, 16)); // YYYY-MM-DDTHH:mm
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,7 +26,8 @@ export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAd
         body: JSON.stringify({
           pakan_kg: parseFloat(pakanKg || '0'),
           maggot_kg: parseFloat(maggotKg || '0'),
-          user_id: userProfile?.id
+          user_id: userProfile?.id,
+          recorded_at: new Date(recordedAt).toISOString()
         })
       });
       
@@ -34,6 +36,8 @@ export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAd
       
       setPakanKg('');
       setMaggotKg('');
+      // reset to current time or keep it
+      setRecordedAt(new Date().toISOString().slice(0, 16));
       onAdd();
       alert('Production record added successfully!');
     } catch (err: any) {
@@ -84,6 +88,16 @@ export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAd
                   onChange={(e) => setMaggotKg(e.target.value)} 
                   placeholder="e.g. 5.2"
                   className="h-9 text-sm"
+                />
+              </div>
+              <div className="space-y-1 col-span-2">
+                <label className="text-xs font-semibold text-slate-600">Date & Time</label>
+                <Input 
+                  type="datetime-local" 
+                  value={recordedAt} 
+                  onChange={(e) => setRecordedAt(e.target.value)} 
+                  className="h-9 text-sm"
+                  required
                 />
               </div>
             </div>

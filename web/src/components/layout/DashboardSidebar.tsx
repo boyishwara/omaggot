@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X, Users, User, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Settings, FileText, BellRing, LogOut, Menu, X, Users, User, BookOpen, Database } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils/classnames';
 import { createClient } from '@/lib/supabase/client';
@@ -17,6 +17,7 @@ type UserProfile = {
 
 const baseLinks = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Production', href: '/dashboard/production', icon: Database },
   { name: 'Guide', href: '/dashboard/guide', icon: BookOpen },
   { name: 'Warning Rules', href: '/dashboard/rules', icon: BellRing },
   { name: 'Reports', href: '/dashboard/reports', icon: FileText },

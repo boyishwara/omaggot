@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { LiveAlerts } from '@/components/dashboard/LiveAlerts';
 import { HistoricalChart } from '@/components/dashboard/HistoricalChart';
-import { ProductionInput } from '@/components/dashboard/ProductionInput';
+import { ProductionSummaryCard } from '@/components/dashboard/ProductionSummaryCard';
 import type { SensorReading } from '@/types';
 import { ApprovalGate } from '@/components/ui/ApprovalGate';
 
@@ -161,7 +161,7 @@ export default function DashboardClient({
           <HistoricalChart data={chartData} onRefresh={fetchManualData} isRefreshing={isRefreshing} />
         </div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }} className="space-y-4 sm:space-y-6">
-          <ProductionInput userProfile={userProfile} onAdd={fetchManualData} />
+          <ProductionSummaryCard />
           <LiveAlerts notifications={notifications} />
         </motion.div>
       </div>

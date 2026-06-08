@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { pakan_kg, maggot_kg, user_id } = body;
+    const { pakan_kg, maggot_kg, user_id, recorded_at } = body;
 
     if (typeof pakan_kg !== 'number' || typeof maggot_kg !== 'number') {
       return NextResponse.json({ success: false, error: 'Invalid payload: pakan_kg and maggot_kg must be numbers' }, { status: 400 });
@@ -13,13 +13,19 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
 
     // Insert reading
+    const payload: any = {
+      pakan_kg,
+      maggot_kg,
+      recorded_by: user_id || null
+    };
+
+    if (recorded_at) {
+      payload.recorded_at = recorded_at;
+    }
+
     const { data: recordData, error: insertError } = await supabase
       .from('production_records')
-      .insert({
-        pakan_kg,
-        maggot_kg,
-        recorded_by: user_id || null
-      })
+      .insert(payload)
       .select('*')
       .single();
 

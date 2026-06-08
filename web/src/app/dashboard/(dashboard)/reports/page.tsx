@@ -34,6 +34,7 @@ interface Stats {
   totalPakan: number;
   totalMaggot: number;
   fcr: number;
+  yieldPercent: number;
   dailyGrowthRate: number;
   daysInPeriod: number;
 }
@@ -310,6 +311,7 @@ export default function ReportsPage() {
         totalPakan,
         totalMaggot,
         fcr: totalMaggot > 0 ? (totalPakan / totalMaggot) : 0,
+        yieldPercent: totalPakan > 0 ? (totalMaggot / totalPakan) * 100 : 0,
         dailyGrowthRate: totalMaggot / diffDays,
         daysInPeriod: diffDays
       });
@@ -461,14 +463,14 @@ export default function ReportsPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                     <MiniStat label="Total Feed" value={`${stats.totalPakan.toFixed(2)} kg`} color="text-indigo-700" />
                     <MiniStat label="Total Maggot" value={`${stats.totalMaggot.toFixed(2)} kg`} color="text-indigo-700" />
-                    <MiniStat label="Est. FCR" value={stats.fcr > 0 ? stats.fcr.toFixed(2) : '-'} sub="Ideal: 1.5 - 2.5" color={stats.fcr >= 1.5 && stats.fcr <= 2.5 ? "text-teal-600" : "text-amber-600"} />
-                    <MiniStat label="Daily Growth" value={`${stats.dailyGrowthRate.toFixed(2)} kg/day`} sub={`Over ${stats.daysInPeriod} days`} color="text-indigo-700" />
+                    <MiniStat label="Est. FCR" value={stats.fcr > 0 ? stats.fcr.toFixed(2) : '-'} sub="Ideal: 4.0 - 6.0" color={stats.fcr >= 4.0 && stats.fcr <= 6.0 ? "text-teal-600" : "text-amber-600"} />
+                    <MiniStat label="Bioconversion" value={`${stats.yieldPercent.toFixed(1)}%`} sub="Ideal: 15% - 25%" color={stats.yieldPercent >= 15 && stats.yieldPercent <= 25 ? "text-teal-600" : "text-amber-600"} />
                   </div>
 
                   <div className="space-y-2 text-sm text-slate-600">
                     <p>
-                      <strong>Feed Conversion Ratio (FCR):</strong> {stats.fcr === 0 ? "Not enough production data to calculate." : `An FCR of ${stats.fcr.toFixed(2)} means it took ${stats.fcr.toFixed(2)} kg of feed to produce 1 kg of maggot.`}
-                      {stats.fcr > 0 && (stats.fcr < 1.5 || stats.fcr > 2.5) && " This is outside the typical ideal range (1.5-2.5). Check feed quality or environmental stress."}
+                      <strong>Feed Conversion Ratio (FCR) & Yield:</strong> {stats.fcr === 0 ? "Not enough production data to calculate." : `An FCR of ${stats.fcr.toFixed(2)} means it took ${stats.fcr.toFixed(2)} kg of wet feed to produce 1 kg of maggot, resulting in a bioconversion yield of ${stats.yieldPercent.toFixed(1)}%.`}
+                      {stats.fcr > 0 && (stats.fcr < 4.0 || stats.fcr > 6.0) && " This is outside the typical ideal range (4.0-6.0) for standard wet organic waste. Check feed quality, moisture content, or environmental stress."}
                     </p>
                     <p>
                       <strong>Daily Growth Rate:</strong> Average harvest of {stats.dailyGrowthRate.toFixed(2)} kg per day. 
