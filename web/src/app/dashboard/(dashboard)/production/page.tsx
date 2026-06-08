@@ -299,7 +299,7 @@ export default function ProductionPage() {
           transition={{ duration: 0.4, delay: 0.1 }}
           className="lg:col-span-2"
         >
-          <Card className="h-full">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Database className="h-4 w-4 text-slate-500" />

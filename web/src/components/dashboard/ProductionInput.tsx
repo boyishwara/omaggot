@@ -54,7 +54,7 @@ export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAd
       allowed={(userProfile.role === 'admin' && userProfile.is_approved) || userProfile.role === 'superadmin'}
       message="Needs Admin/Superadmin approval to input production data."
     >
-      <Card className="h-full border border-teal-100 shadow-sm">
+      <Card className="border border-teal-100 shadow-sm">
         <CardHeader className="pb-3 border-b border-teal-50 bg-teal-50/30 rounded-t-xl">
           <CardTitle className="flex items-center gap-2 text-base text-teal-800">
             <Leaf className="h-4 w-4 text-teal-600" />
