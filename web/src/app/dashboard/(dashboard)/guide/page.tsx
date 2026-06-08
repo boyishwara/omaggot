@@ -158,24 +158,24 @@ export default function GuidePage() {
           <CardHeader className="bg-teal-50/40 border-b border-teal-100">
             <CardTitle className="flex items-center gap-2 text-teal-800">
               <Leaf className="h-5 w-5 text-teal-500" />
-              Feed &amp; Maggot — Apa itu &amp; Kenapa Diinput?
+              Feed &amp; Maggot — What Are They &amp; Why Are They Recorded?
             </CardTitle>
           </CardHeader>
           <CardContent className="py-5 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600 leading-relaxed">
             {/* Feed */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Feed / Pakan</span>
+                <span className="bg-amber-100 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide">Feed</span>
                 <span className="text-slate-400 text-xs">(Input)</span>
               </div>
               <p>
-                <strong>Feed (Pakan)</strong> adalah bahan organik yang diberikan kepada larva BSF (Black Soldier Fly) sebagai makanan — seperti sisa makanan, ampas buah, atau limbah organik lainnya. Ini adalah <em>input</em> proses budidaya.
+                <strong>Feed</strong> is the organic material given to the BSF (Black Soldier Fly) larvae as food — such as food scraps, fruit pulp, or other organic waste. It is the <em>input</em> of the cultivation process.
               </p>
               <p className="text-slate-500 text-xs italic">
-                "How much organic waste did we feed the larvae today?"
+                "How many kilograms of organic waste did we give to the larvae today?"
               </p>
               <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-xs text-amber-800">
-                <strong>Contoh:</strong> Hari ini kamu memberi 10 kg sisa sayuran ke koloni maggot. Nilai yang diinput adalah <strong>10 kg</strong>.
+                <strong>Example:</strong> Today you fed 10 kg of vegetable scraps to the maggot colony. You record <strong>10 kg</strong> in the Feed field.
               </div>
             </div>
 
@@ -186,13 +186,13 @@ export default function GuidePage() {
                 <span className="text-slate-400 text-xs">(Output)</span>
               </div>
               <p>
-                <strong>Maggot</strong> adalah larva BSF yang dipanen setelah siklus pertumbuhan selesai. Ini adalah <em>output</em> atau hasil dari proses budidaya. Larva ini memiliki nilai jual sebagai pakan ternak atau ikan.
+                <strong>Maggot</strong> refers to the BSF larvae harvested after completing their growth cycle. It is the <em>output</em> or product of the cultivation process. These larvae have commercial value as animal or fish feed.
               </p>
               <p className="text-slate-500 text-xs italic">
                 "How many kilograms of larvae did we harvest today?"
               </p>
               <div className="bg-teal-50 border border-teal-100 rounded-lg p-3 text-xs text-teal-800">
-                <strong>Contoh:</strong> Setelah beberapa hari, kamu panen <strong>2.5 kg</strong> larva BSF dari koloni yang diberi 10 kg pakan tersebut.
+                <strong>Example:</strong> After a few days, you harvest <strong>2.5 kg</strong> of BSF larvae from the colony that was given 10 kg of feed.
               </div>
             </div>
 
@@ -200,25 +200,25 @@ export default function GuidePage() {
             <div className="md:col-span-2 bg-indigo-50 border border-indigo-100 rounded-xl p-4 space-y-3">
               <p className="font-semibold text-indigo-800 text-sm flex items-center gap-2">
                 <Bug className="h-4 w-4" />
-                Hubungan Feed → Maggot &amp; Kenapa Keduanya Harus Diinput
+                How Feed and Maggot Relate — and Why Both Must Be Recorded
               </p>
               <p>
-                Feed adalah <strong>bahan bakar</strong>, Maggot adalah <strong>hasilnya</strong>. Tanpa mencatat keduanya, sistem tidak bisa menghitung efisiensi budidaya kamu.
+                Feed is the <strong>fuel</strong>; Maggot is the <strong>result</strong>. Without recording both, the system cannot calculate your farming efficiency.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div className="bg-white border border-indigo-100 rounded-lg p-3">
                   <p className="font-bold text-indigo-700 mb-1">Feed Conversion Ratio (FCR)</p>
                   <p className="text-slate-600 mb-1">= Feed (kg) ÷ Maggot (kg)</p>
-                  <p className="text-slate-500">Mengukur berapa kg pakan yang dibutuhkan untuk menghasilkan 1 kg maggot. Semakin kecil angkanya, semakin efisien. Idealnya <strong>4–6</strong> untuk limbah basah.</p>
+                  <p className="text-slate-500">Measures how many kg of feed are needed to produce 1 kg of maggot. A lower number means higher efficiency. The ideal range is <strong>4–6</strong> for wet organic waste.</p>
                 </div>
                 <div className="bg-white border border-indigo-100 rounded-lg p-3">
                   <p className="font-bold text-indigo-700 mb-1">Bioconversion Yield</p>
                   <p className="text-slate-600 mb-1">= (Maggot ÷ Feed) × 100%</p>
-                  <p className="text-slate-500">Persentase pakan yang berhasil dikonversi menjadi biomassa larva. Idealnya <strong>15%–25%</strong>. Angka rendah bisa berarti suhu atau kelembapan tidak optimal.</p>
+                  <p className="text-slate-500">The percentage of feed successfully converted into larval biomass. The ideal range is <strong>15%–25%</strong>. A low yield may indicate suboptimal temperature or humidity conditions.</p>
                 </div>
               </div>
               <p className="text-xs text-indigo-600 font-medium">
-                💡 Itulah mengapa O'Maggot meminta kamu menginput <em>kedua nilai ini secara bersamaan</em> — sistem akan secara otomatis menghitung efisiensi dan mengorelasikannya dengan data sensor lingkungan di halaman Reports.
+                💡 That is why O'Maggot asks you to record <em>both values together</em> — the system will automatically calculate efficiency and correlate it with environmental sensor data on the Reports page.
               </p>
             </div>
           </CardContent>

@@ -44,16 +44,22 @@ export default function ProductionPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-10 space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/60 shadow-sm"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Production Data</h1>
-          <p className="text-sm text-slate-500 mt-1">Record feed and maggot harvests to calculate efficiency.</p>
+          <h1 className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">Production Data</h1>
+          <p className="text-slate-500 mt-0.5 text-xs sm:text-sm">Record feed input and maggot harvests to track farming efficiency.</p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="lg:col-span-1 space-y-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }} className="lg:col-span-1 space-y-6">
           <ProductionInput userProfile={userProfile} onAdd={fetchProfileAndData} />
           
           <Card className="border-indigo-100 shadow-sm bg-indigo-50/30">
@@ -74,7 +80,7 @@ export default function ProductionPage() {
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="lg:col-span-2">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="lg:col-span-2">
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -92,7 +98,7 @@ export default function ProductionPage() {
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="py-3 font-semibold text-slate-600">Date & Time</th>
+                        <th className="py-3 font-semibold text-slate-600">Date &amp; Time</th>
                         <th className="py-3 font-semibold text-slate-600">Feed (kg)</th>
                         <th className="py-3 font-semibold text-slate-600">Maggot (kg)</th>
                       </tr>
