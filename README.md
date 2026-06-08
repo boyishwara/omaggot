@@ -86,6 +86,7 @@ This Entity-Relationship Diagram details the relational PostgreSQL database stru
 erDiagram
     sensor_readings ||--o{ notifications : triggers
     warning_rules ||--o{ notifications : generates
+    user_profiles ||--o{ production_records : records
 
     sensor_readings {
         BIGINT id PK
@@ -349,6 +350,7 @@ flowchart LR
         UC_ViewRule(View Warning Rules)
         UC_MgmtRule(Manage Rules)
         UC_TestNotif(Trigger Test Notifications)
+        UC_Production(Input Production Data)
 
         UC_Simulate(Trigger Hardware Simulation)
         UC_DelData(Delete Sensor Data)
@@ -375,6 +377,7 @@ flowchart LR
     User --> UC_ViewRule
 
     Admin --> UC_MgmtRule
+    Admin --> UC_Production
     Admin --> UC_Simulate
     Admin --> UC_DelData
     Admin --> UC_Subscribers
@@ -384,7 +387,7 @@ flowchart LR
     classDef actor fill:fff,stroke:,stroke-width:px,color:;
     classDef usecase fill:effe,stroke:d,stroke-width:px,color:;
     class User,Admin,Superadmin actor;
-    class UC_Auth,UC_Dash,UC_Rep,UC_Exp,UC_ViewRule,UC_MgmtRule,UC_TestNotif,UC_Simulate,UC_DelData,UC_Subscribers,UC_UserMgmt,UC_Approve usecase;
+    class UC_Auth,UC_Dash,UC_Rep,UC_Exp,UC_ViewRule,UC_MgmtRule,UC_TestNotif,UC_Production,UC_Simulate,UC_DelData,UC_Subscribers,UC_UserMgmt,UC_Approve usecase;
 ```
 
 Explanation:

@@ -96,7 +96,7 @@ export function ProductionInput({ userProfile, onAdd }: { userProfile: any, onAd
                   type="datetime-local" 
                   value={recordedAt} 
                   onChange={(e) => setRecordedAt(e.target.value)} 
-                  className="h-9 text-sm"
+                  className="h-9 text-sm pr-2 w-full"
                   required
                 />
               </div>
