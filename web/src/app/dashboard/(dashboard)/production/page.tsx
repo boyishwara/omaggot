@@ -5,10 +5,10 @@ import { ProductionInput } from '@/components/dashboard/ProductionInput';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Database, Info, Pencil, Trash2, X, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BlockedPage } from '@/components/ui/BlockedPage';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 type ProductionRecord = {
   id: string;
@@ -158,30 +158,16 @@ function EditModal({
 }
 
 export default function ProductionPage() {
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [sessionUser, setSessionUser] = useState<any>(null);
+  const { user: sessionUser, profile: userProfile } = useAuth();
   const [records, setRecords] = useState<ProductionRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingRecord, setEditingRecord] = useState<ProductionRecord | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchProfileAndData = async () => {
+  const fetchRecordsData = async () => {
     setLoading(true);
     const supabase = createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-      setSessionUser(session.user);
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-      if (profile) setUserProfile(profile);
-    }
-
+    
     const { data: prodData } = await supabase
       .from('production_records')
       .select('*')
@@ -193,7 +179,7 @@ export default function ProductionPage() {
   };
 
   useEffect(() => {
-    fetchProfileAndData();
+    fetchRecordsData();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -203,7 +189,7 @@ export default function ProductionPage() {
       const res = await fetch(`/api/production/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      fetchProfileAndData();
+      fetchRecordsData();
     } catch (err: any) {
       alert(err.message || 'Failed to delete record');
     } finally {
@@ -219,15 +205,6 @@ export default function ProductionPage() {
   const isApproved = userProfile?.is_approved ?? true;
   const canManage = (role === 'admin' && isApproved) || role === 'superadmin';
 
-  if (!canManage) {
-    return (
-      <BlockedPage 
-        title="Access Restricted" 
-        message="The production tab can only be accessed by admin and superadmin users." 
-      />
-    );
-  }
-
   return (
     <div className="p-4 sm:p-6 lg:p-10 space-y-6">
       {/* Edit Modal */}
@@ -236,7 +213,7 @@ export default function ProductionPage() {
           <EditModal
             record={editingRecord}
             onClose={() => setEditingRecord(null)}
-            onSaved={fetchProfileAndData}
+            onSaved={fetchRecordsData}
           />
         )}
       </AnimatePresence>
@@ -265,7 +242,9 @@ export default function ProductionPage() {
           transition={{ duration: 0.4, delay: 0.05 }}
           className="lg:col-span-1 space-y-6"
         >
-          <ProductionInput userProfile={userProfile || { id: sessionUser?.id, role, is_approved: isApproved }} onAdd={fetchProfileAndData} />
+          {canManage && (
+            <ProductionInput userProfile={userProfile || { id: sessionUser?.id, role, is_approved: isApproved }} onAdd={fetchRecordsData} />
+          )}
 
           <Card className="border-indigo-100 shadow-sm bg-indigo-50/30">
             <CardHeader className="pb-3">
@@ -319,7 +298,7 @@ export default function ProductionPage() {
                         <th className="py-3 font-semibold text-slate-600">Date &amp; Time</th>
                         <th className="py-3 font-semibold text-slate-600">Feed (kg)</th>
                         <th className="py-3 font-semibold text-slate-600">Maggot (kg)</th>
-                        <th className="py-3 font-semibold text-slate-600 text-right">Actions</th>
+                        {canManage && <th className="py-3 font-semibold text-slate-600 text-right">Actions</th>}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -334,25 +313,27 @@ export default function ProductionPage() {
                           <td className="py-3 text-slate-800 font-medium">
                             {Number(r.maggot_kg).toFixed(2)}
                           </td>
-                          <td className="py-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => setEditingRecord(r)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                                title="Edit record"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(r.id)}
-                                disabled={deletingId === r.id}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
-                                title="Delete record"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
+                          {canManage && (
+                            <td className="py-3 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => setEditingRecord(r)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                                  title="Edit record"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(r.id)}
+                                  disabled={deletingId === r.id}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                                  title="Delete record"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
