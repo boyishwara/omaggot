@@ -33,9 +33,9 @@ export function ProductionSummaryCard() {
   }, []);
 
   return (
-    <Card className="h-full border border-indigo-100 shadow-sm">
-      <CardHeader className="pb-3 border-b border-indigo-50 bg-indigo-50/30 rounded-t-xl flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2 text-base text-indigo-800">
+    <Card className="border border-indigo-100 shadow-sm">
+      <CardHeader className="py-3 px-4 border-b border-indigo-50 bg-indigo-50/30 rounded-t-xl flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
           <Database className="h-4 w-4 text-indigo-600" />
           Production (Last 7 Days)
         </CardTitle>
@@ -43,23 +43,23 @@ export function ProductionSummaryCard() {
           Manage &rarr;
         </Link>
       </CardHeader>
-      <CardContent className="pt-4 space-y-4">
+      <CardContent className="px-4 py-3 space-y-2.5">
         {loading ? (
-          <div className="text-center text-sm text-slate-500">Loading...</div>
+          <div className="text-center text-xs text-slate-400 py-2">Loading...</div>
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Feed Used</span>
-              <span className="text-sm font-bold text-slate-800">{totalPakan.toFixed(2)} kg</span>
+              <span className="text-xs font-medium text-slate-500">Feed Used</span>
+              <span className="text-xs font-bold text-slate-700">{totalPakan.toFixed(2)} kg</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-slate-600">Maggot Harvested</span>
-              <span className="text-sm font-bold text-slate-800 text-teal-600">{totalMaggot.toFixed(2)} kg</span>
+              <span className="text-xs font-medium text-slate-500">Maggot Harvested</span>
+              <span className="text-xs font-bold text-teal-600">{totalMaggot.toFixed(2)} kg</span>
             </div>
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-slate-500">Est. FCR: {totalMaggot > 0 ? (totalPakan / totalMaggot).toFixed(2) : '-'}</span>
-              <span className="text-slate-500 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> Yield: {totalPakan > 0 ? ((totalMaggot / totalPakan) * 100).toFixed(1) : '-'}%
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs text-slate-400">Est. FCR: {totalMaggot > 0 ? (totalPakan / totalMaggot).toFixed(2) : '—'}</span>
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" /> Yield: {totalPakan > 0 ? ((totalMaggot / totalPakan) * 100).toFixed(1) : '—'}%
               </span>
             </div>
           </>
