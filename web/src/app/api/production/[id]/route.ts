@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const { id } = params;
     const body = await request.json();
     const { pakan_kg, maggot_kg, recorded_at } = body;
@@ -35,8 +36,9 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const { id } = params;
     const supabase = createAdminClient();
 
