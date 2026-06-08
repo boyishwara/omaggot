@@ -2,6 +2,7 @@ import React from 'react';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -26,11 +27,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   };
 
   return (
-    <div className="flex min-h-screen bg-[var(--canvas)]">
-      <DashboardSidebar profile={userProfile} />
-      <main className="flex-1 overflow-x-hidden pt-14 lg:pt-0 relative">
-        {children}
-      </main>
-    </div>
+    <AuthProvider initialUser={user} initialProfile={userProfile}>
+      <div className="flex min-h-screen bg-[var(--canvas)]">
+        <DashboardSidebar />
+        <main className="flex-1 overflow-x-hidden pt-14 lg:pt-0 relative">
+          {children}
+        </main>
+      </div>
+    </AuthProvider>
   );
 }

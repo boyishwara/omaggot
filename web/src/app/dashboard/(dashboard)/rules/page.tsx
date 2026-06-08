@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Plus, Trash2, X, Edit2, ShieldAlert, Clock, Info } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { WarningRule } from '@/types';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 // ──────────────────── helpers ────────────────────
 const EMPTY_FORM = {
@@ -166,16 +167,10 @@ export default function RulesPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<WarningRule | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const supabase = createClient();
+  const { profile: userProfile } = useAuth();
 
   const fetchRules = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase.from('user_profiles').select('*').eq('id', user.id).single();
-      setUserProfile(profile);
-    }
     const res = await fetch('/api/rules');
     const json = await res.json();
     if (json.success) setRules(json.data);

@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/Input';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Lock, Trash2, ShieldAlert, CheckCircle2, Clock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
-  const [authUser, setAuthUser] = useState<any>(null);
+  const { user: authUser, profile, refreshProfile } = useAuth();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,20 +29,13 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    async function loadData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setAuthUser(user);
-        setEmail(user.email || '');
-        const { data: p } = await (supabase as any).from('user_profiles').select('*').eq('id', user.id).single();
-        if (p) {
-          setProfile(p);
-          setName(p.name || '');
-        }
-      }
+    if (authUser) {
+      setEmail(authUser.email || '');
     }
-    loadData();
-  }, [supabase]);
+    if (profile) {
+      setName(profile.name || '');
+    }
+  }, [authUser, profile]);
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -51,10 +44,14 @@ export default function ProfilePage() {
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!authUser) return;
     setLoadingName(true);
     const { error } = await (supabase as any).from('user_profiles').update({ name }).eq('id', authUser.id);
     if (error) showMessage('error', error.message);
-    else showMessage('success', 'Name updated successfully. (Refresh page to see changes in sidebar)');
+    else {
+      showMessage('success', 'Name updated successfully.');
+      await refreshProfile();
+    }
     setLoadingName(false);
   };
 
@@ -111,7 +108,7 @@ export default function ProfilePage() {
   if (!authUser) return null;
 
   const isApproved = profile?.is_approved ?? true;
-  const role: string = profile?.role ?? authUser.user_metadata?.role ?? 'user';
+  const role: string = profile?.role ?? authUser?.user_metadata?.role ?? 'user';
   const isPendingAdmin = role === 'admin' && !isApproved;
 
   return (

@@ -8,12 +8,7 @@ import { cn } from '@/lib/utils/classnames';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-
-type UserProfile = {
-  name: string;
-  role: string;
-  is_approved: boolean;
-};
+import { useAuth } from '@/components/providers/AuthProvider';
 
 const baseLinks = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -25,13 +20,14 @@ const baseLinks = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNavigate?: () => void; profile: UserProfile }) {
+function NavContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   const router = useRouter();
   const supabase = createClient();
+  const { profile } = useAuth();
 
   // Add Users tab if superadmin
   const links = [...baseLinks];
-  if (profile.role === 'superadmin') {
+  if (profile?.role === 'superadmin') {
     links.push({ name: 'User Management', href: '/dashboard/users', icon: Users });
   }
 
@@ -52,9 +48,9 @@ function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNav
       </div>
 
       <div className="px-6 py-4 border-b border-slate-800/50 bg-slate-800/20">
-        <p className="text-slate-100 font-medium">Hello, {profile.name}!</p>
-        <p className="text-xs text-slate-400 mt-1 capitalize">You're an/a {profile.role}</p>
-        {profile.role === 'admin' && !profile.is_approved && (
+        <p className="text-slate-100 font-medium">Hello, {profile?.name || 'User'}!</p>
+        <p className="text-xs text-slate-400 mt-1 capitalize">You're an/a {profile?.role || 'user'}</p>
+        {profile?.role === 'admin' && !profile?.is_approved && (
           <p className="text-[10px] text-amber-400 mt-1 font-medium bg-amber-400/10 inline-block px-2 py-0.5 rounded">Pending Approval</p>
         )}
       </div>
@@ -96,7 +92,7 @@ function NavContent({ pathname, onNavigate, profile }: { pathname: string; onNav
   );
 }
 
-export function DashboardSidebar({ profile }: { profile: UserProfile }) {
+export function DashboardSidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -104,7 +100,7 @@ export function DashboardSidebar({ profile }: { profile: UserProfile }) {
     <>
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-slate-900 border-r border-slate-800 flex-col h-screen shrink-0 sticky top-0 text-slate-400 font-sans shadow-xl shadow-slate-900/20 z-40">
-        <NavContent pathname={pathname} profile={profile} />
+        <NavContent pathname={pathname} />
       </aside>
 
       {/* Mobile Top Bar */}
@@ -148,7 +144,7 @@ export function DashboardSidebar({ profile }: { profile: UserProfile }) {
               >
                 <X className="h-4 w-4" />
               </button>
-              <NavContent pathname={pathname} onNavigate={() => setMobileOpen(false)} profile={profile} />
+              <NavContent pathname={pathname} onNavigate={() => setMobileOpen(false)} />
             </motion.aside>
           </>
         )}
