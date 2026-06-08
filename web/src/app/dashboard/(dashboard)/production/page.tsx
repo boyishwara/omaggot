@@ -5,6 +5,7 @@ import { ProductionInput } from '@/components/dashboard/ProductionInput';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Database, Info, Pencil, Trash2, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { BlockedPage } from '@/components/ui/BlockedPage';
